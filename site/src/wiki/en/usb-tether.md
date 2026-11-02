@@ -16,6 +16,9 @@ Windows marks the phone's network as public and blocks incoming connections from
 
 > Press "Firewall" in the server window once: the rule works for all networks.
 
+![The button in the server window](img/server.jpg)
+5 "Firewall" adds a rule for port 47800 on all networks
+
 ## No new network appeared
 
 If no new network shows up in Windows after you turn on tethering, open Device Manager. The phone should appear as "Remote NDIS based Internet Sharing Device".

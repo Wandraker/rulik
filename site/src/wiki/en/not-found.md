@@ -27,6 +27,10 @@ If you have a third-party antivirus with its own firewall, allow Rulik Server th
 
 Some routers block automatic discovery. Tap "Enter the address manually" and type the address from the server window. The server lists every address of the PC and labels which network each one belongs to.
 
+![The address in the server window](img/server.jpg)
+1 The PC's address
+5 The "Firewall" button
+
 ## Wrong PIN
 
 The PIN is shown in the server window. If it was changed, enter the new one.

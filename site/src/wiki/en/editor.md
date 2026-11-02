@@ -13,6 +13,23 @@ In the layouts list, tap ⋮ and Edit. In the middle of a game, the editor opens
 - The sliders button opens the control's properties.
 - The gear opens the settings of the whole layout.
 
+![The layout editor](img/editor.jpg)
+1 Add a control
+2 Properties of the selected control
+3 Duplicate the control
+4 Delete the control
+5 Layout settings
+6 Save
+7 Close without saving
+8 Drag the circle to resize
+
+![What you can add](img/add-menu.jpg)
+1 Button, stick, D-pad or touchpad
+
+![The editor also opens right from a game](img/play-menu.jpg)
+1 Tap the ping pill
+2 Typing on the PC, layout editor, exit
+
 ## Button
 
 The **Action** is picked on one of the tabs:
@@ -22,6 +39,10 @@ The **Action** is picked on one of the tabs:
 - **Mouse**: left, right, middle and side buttons, wheel up and down.
 - **Special**: "Gyro while held" and "Open the keyboard" for typing on the PC.
 
+![Choosing a button's action](img/action-keys.jpg)
+1 Tabs: gamepad, keyboard, mouse, special
+2 The selected combo: pick up to 4 keys
+
 **Mode**:
 
 - **Hold**: pressed while your finger is down.
@@ -30,6 +51,10 @@ The **Action** is picked on one of the tabs:
 
 A button also has a label and a shape: circle or rectangle.
 
+![Button properties](img/button-props.jpg)
+1 Action: tap to choose
+2 Mode: hold, toggle or turbo
+
 ## Stick
 
 **Output**: left stick, right stick, WASD, arrows, D-pad or mouse.
@@ -37,6 +62,9 @@ A button also has a label and a shape: circle or rectangle.
 - **Floating**: the stick centers where you touch, so you don't have to hit it exactly.
 - **Dead zone**: how far you have to push the stick before it reacts.
 - **Sensitivity**: for mouse mode.
+
+![Stick properties](img/stick-props.jpg)
+1 What the stick does: left or right stick, WASD, arrows, mouse, D-pad
 
 ## D-pad
 
@@ -54,3 +82,8 @@ Works as the gamepad's D-pad, WASD or arrows.
 - **Vibrate on press**.
 - **Opacity** of the controls, so they don't hide the screen.
 - **Gyro** and **Tilt**: see [Gyro, tilt and rumble](gyro.html).
+
+![Layout settings](img/layout-settings.jpg)
+1 Portrait orientation
+2 Vibrate on press
+3 Opacity of the controls

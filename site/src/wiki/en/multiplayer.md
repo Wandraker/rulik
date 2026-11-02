@@ -10,6 +10,9 @@ keywords: two players co-op multiplayer couch split screen
 2. Each player starts their own layout.
 3. In the game, each phone is a separate Xbox gamepad: player 1, player 2 and so on.
 
+![Two phones in the server window](img/server.jpg)
+3 Every connected phone with its latency
+
 Great for split-screen and local co-op games. You can also mix: one player on a real gamepad, another on a phone.
 
 ## Phone name

@@ -15,9 +15,16 @@ The "Mouse & keyboard" layout is mostly a touchpad:
 
 Change the sensitivity in the touchpad's properties in the [editor](editor.html).
 
+![The "Mouse & keyboard" layout](img/play-mouse.jpg)
+1 Touchpad
+2 Typing on the PC
+3 Left and right mouse buttons
+
 ## Typing
 
 A button with the "Open the keyboard" action brings up the phone's keyboard. Letters are sent to the PC right away as you type, so you can write in a browser, a messenger or a game chat.
+
+![Typing](img/type-dialog.jpg)
 
 ## Keys and combos
 

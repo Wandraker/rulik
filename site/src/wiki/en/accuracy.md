@@ -6,6 +6,12 @@ keywords: miss accuracy gap nearest button vibration edge adapt calibration fing
 ---
 All three settings are in the app on the Connect tab, under "Touch accuracy". They're all on by default, and each can be turned off on its own.
 
+![The "Touch accuracy" block in the settings](img/settings.jpg)
+3 Nearest button on a miss
+4 Click at button edges
+5 Adapt to my fingers
+6 Reset adaptation
+
 ## Nearest button on a miss
 
 A tap in the gap between buttons goes to the closest button or D-pad, as long as it's within about half a finger. If there's nothing nearby, nothing is pressed.

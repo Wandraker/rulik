@@ -8,6 +8,12 @@ keywords: lag latency ping slow stutter 5 ghz battery saver
 
 Turn on "Show ping while playing" in the app's settings. The number shows up in a corner of the screen while you play.
 
+![Where to turn on the ping](img/settings.jpg)
+2 Show ping while playing
+
+![The ping while playing](img/play.jpg)
+1 The latency to the PC
+
 - **2–10 ms**: all good.
 - **10–30 ms**: playable, but noticeable in fast games.
 - **Over 30 ms**: the network is in the way, see the tips below.

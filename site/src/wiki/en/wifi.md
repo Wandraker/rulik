@@ -14,6 +14,11 @@ The phone and the PC must be on the same network. The PC can be wired to the rou
 
 Discovery uses a broadcast packet on the local network, so there's nothing to type.
 
+![The Connect tab](img/connect.jpg)
+1 Every PC running Rulik Server shows up here
+2 Entering the address manually
+3 Switching to a cable connection
+
 ## Entering the address manually
 
 If the PC isn't found, tap "Enter the address manually" and type the address from the server window, for example `192.168.1.52`. The server window may list several addresses: use the one that belongs to your home network.

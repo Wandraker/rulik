@@ -15,6 +15,13 @@ keywords: adb debugging usb cable platform-tools developer
 2. Press "USB (adb)" in the Rulik Server window.
 3. In the app, switch to USB and tap "Connect via USB".
 
+![Cable connection in the app](img/usb.jpg)
+1 The USB tab
+2 Connect via USB
+
+![The button in the server window](img/server.jpg)
+4 "USB (adb)" forwards the port over the cable
+
 > Press "USB (adb)" again after reconnecting the cable.
 
 Don't want to turn on debugging? Use [USB tethering](usb-tether.html).

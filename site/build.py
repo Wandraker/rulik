@@ -10,6 +10,7 @@ import html
 import re
 import json
 import shutil
+import struct
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
@@ -161,7 +162,15 @@ def markdown(text: str) -> str:
     for block in re.split(r"\n\s*\n", text.strip()):
         lines = block.strip().split("\n")
         first = lines[0]
-        if first.startswith("#"):
+        if first.startswith("!["):
+            # картинка, подпись и легенда: строки «N текст» объясняют номера на скриншоте
+            m = re.match(r"!\[([^\]]*)\]\(([^)\s]+)\)", first)
+            caption, src = m.group(1), m.group(2)
+            legend = "".join(f'<li><span class="n">{n}</span>{inline(t)}</li>'
+                             for n, t in (re.match(r"(\d+)\s+(.*)", l.strip()).groups() for l in lines[1:]))
+            out.append(f'<figure><a href="{src}"><img src="{src}" alt="{html.escape(caption)}" loading="lazy"></a>'
+                       f'<figcaption>{inline(caption)}{f"<ol class=legend>{legend}</ol>" if legend else ""}</figcaption></figure>')
+        elif first.startswith("#"):
             assert len(lines) == 1, f"после заголовка нужна пустая строка: {first}"
             level = len(first) - len(first.lstrip("#"))
             out.append(f"<h{level}>{inline(first[level:].strip())}</h{level}>")
@@ -187,12 +196,28 @@ def markdown(text: str) -> str:
     return "\n".join(out)
 
 
+def jpeg_size(path: Path) -> tuple[int, int]:
+    data = path.read_bytes()
+    i = 2
+    while i < len(data):
+        marker = data[i + 1]
+        if marker in (0xC0, 0xC1, 0xC2):
+            h, w = struct.unpack(">HH", data[i + 5:i + 9])
+            return w, h
+        i += 2 + struct.unpack(">H", data[i + 2:i + 4])[0]
+    raise ValueError(f"не JPEG: {path}")
+
+
 def read_article(lang: str, slug: str) -> dict:
     raw = (SRC / "wiki" / lang / f"{slug}.md").read_text(encoding="utf-8")
     _, head, body = raw.split("---", 2)
     meta = dict(line.split(":", 1) for line in head.strip().split("\n"))
     meta = {k.strip(): v.strip() for k, v in meta.items()}
-    meta["html"] = markdown(body)
+    # размеры картинок сразу в разметку, чтобы страница не прыгала при загрузке
+    def sized(m):
+        w, h = jpeg_size(SRC / "wiki" / lang / m.group(1))
+        return f'<img src="{m.group(1)}" width="{w}" height="{h}"' + (' class="tall"' if h > w else "")
+    meta["html"] = re.sub(r'<img src="([^"]+)"', sized, markdown(body))
     meta["slug"] = slug
     return meta
 
@@ -335,6 +360,8 @@ def main():
         t = T[lang]
         out = DIST if lang == "ru" else DIST / "en"
         (out / "wiki").mkdir(parents=True, exist_ok=True)
+        if (SRC / "wiki" / lang / "img").exists():
+            shutil.copytree(SRC / "wiki" / lang / "img", out / "wiki" / "img")
         for slug in PAGES:
             body = (SRC / lang / f"{slug}.html").read_text(encoding="utf-8")
             body = (body.replace("{{APK}}", APK).replace("{{EXE}}", EXE).replace("{{REPO}}", REPO)

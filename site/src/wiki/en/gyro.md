@@ -14,6 +14,13 @@ Turning the phone moves the mouse or the right stick, like aiming on a Switch.
 
 In the second case, add a button with the "Gyro while held" action (Special tab). This is the most comfortable setup: aim roughly with the stick and fine-tune by turning the phone.
 
+![Gyro in the layout settings](img/gyro.jpg)
+1 What the gyro moves: the mouse or the right stick
+2 Always on, or only while a button is held
+
+![A button for the gyro](img/action-special.jpg)
+1 The "Gyro while held" action on the Special tab
+
 Axis going the wrong way? Turn on "Invert horizontal" or "Invert vertical". The "Gamepad + gyro aim" layout has it ready to go.
 
 ## Tilt steering

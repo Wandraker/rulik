@@ -19,6 +19,18 @@ A regular gamepad can't do this on its own: it needs separate tools like reWASD 
 5. Add **buttons** and give each one a game key on the Keyboard or Mouse tab: space, Shift, E, numbers, clicks. You can also set a combo of up to 4 keys.
 6. Save, press ▶ and launch the game.
 
+![The "Shooter: WASD + mouse" layout](img/play-shooter.jpg)
+1 Stick in WASD mode: walking
+2 Touchpad in mouse mode: camera
+3 A button with a left click: shooting
+
+![A stick on keys](img/stick-props.jpg)
+1 Pick WASD or Arrows
+
+![Keys for a button](img/action-keys.jpg)
+1 The Keyboard or Mouse tab
+2 Up to 4 keys in one combo
+
 Ready-made layouts for specific games are on the [Layouts](../layouts.html) page, Minecraft for example.
 
 ## Mixing is fine

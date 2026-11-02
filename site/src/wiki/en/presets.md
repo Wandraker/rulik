@@ -17,6 +17,13 @@ keywords: layout built-in share import clipboard json duplicate restore
 
 Deleted or broke a built-in one? The layouts list has "Restore built-in layouts".
 
+![The layouts list](img/layouts.jpg)
+1 Start a layout
+2 Layout menu
+3 Import a layout from the clipboard
+4 Restore built-in layouts
+5 New empty layout
+
 ## What you can do with a layout
 
 Tap ⋮ next to a layout:
@@ -26,6 +33,12 @@ Tap ⋮ next to a layout:
 - **Share**: sends the layout as text to any messenger.
 - **Copy as text**: puts the layout on the clipboard.
 - **Delete**.
+
+![Layout menu](img/layout-menu.jpg)
+1 Edit
+2 Duplicate
+3 Share
+4 Copy as text
 
 ## Import
 

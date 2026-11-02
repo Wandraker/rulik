@@ -12,6 +12,10 @@ By default the server asks for a PIN that's only visible in its window. A phone 
 - **Require PIN**: can be turned off if you're alone on your home network. Better to leave it on.
 - **Disconnect all**: kicks every connected phone right away.
 
+![The PIN in the server window](img/server.jpg)
+2 The PIN, the "New PIN" button and the "Require PIN" checkbox
+6 Disconnect all
+
 ## What the server can and can't do
 
 Rulik Server only accepts control input: gamepad buttons, mouse movement, key presses and text. It has no access to your files, screen or camera, and it sends nothing to the internet: everything stays on your network or cable.
