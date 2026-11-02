@@ -19,6 +19,7 @@
 ## Features
 
 - **An Xbox 360 gamepad for any game.** The server creates a virtual controller through the ViGEmBus driver, so the game sees a regular wired Xbox pad. It doesn't matter where the game came from: Steam, Epic, GOG, the Xbox app or a disc.
+- **Even in games without gamepad support.** On-screen buttons and sticks can be bound to keys and the mouse, so the game thinks you're on a keyboard. That way you can play strategy games, old games and anything with no gamepad support at all from your phone. Ready-made layouts: "Shooter: WASD + mouse" in the app and Minecraft on the website.
 - **Mouse and keyboard.** A touchpad with gestures (tap, two-finger right click, scrolling, dragging), any key and combos of up to 4 keys, and typing text straight on the PC.
 - **Wi-Fi or cable.** UDP over Wi-Fi with 2–10 ms of latency. Over a cable through USB tethering (no debugging needed) or `adb reverse`.
 - **Layout editor.** Buttons, sticks, D-pads and touchpads. Drag them around, resize them and pick a mode: hold, toggle or turbo. A stick can drive the left or right stick, WASD, arrows, the D-pad or the mouse.

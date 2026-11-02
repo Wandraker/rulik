@@ -89,6 +89,8 @@ footer {
 .ico.sm { width: 34px; height: 34px; border-radius: 10px; }
 .ico.sm svg { width: 19px; height: 19px; }
 .feature .ico { margin-bottom: 14px; }
+.feature.wide { margin-top: 14px; display: flex; gap: 18px; align-items: flex-start; }
+.feature.wide .ico { margin-bottom: 0; }
 .with-ico { display: flex; align-items: center; gap: 12px; }
 .feature p { color: var(--dim); margin: 0; font-size: 15px; }
 

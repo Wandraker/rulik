@@ -58,6 +58,8 @@ ICONS = {
     "gyro": _I.format('<rect x="8.5" y="4" width="7" height="16" rx="1.8"/><path d="M11 17h2"/>'
                       '<path d="M5 8.5a8.5 8.5 0 0 0 0 7M19 15.5a8.5 8.5 0 0 0 0-7"/><path d="M3.3 14.3 5 15.6l1.4-1.6M20.7 9.7 19 8.4l-1.4 1.6"/>'),
     "phone": _I.format('<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 18.5h3"/>'),
+    "keys": _I.format('<rect x="2.5" y="6" width="19" height="12" rx="2"/>'
+                      '<path d="M6 9.5h.01M9.3 9.5h.01M12.6 9.5h.01M15.9 9.5h.01M18 9.5h.01M6 12.3h.01M18 12.3h.01M8.5 15h7"/>'),
     "pc": _I.format('<rect x="2.5" y="4" width="19" height="12.5" rx="2"/><path d="M8 20.5h8M12 16.5v4"/>'),
 }
 
