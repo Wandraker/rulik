@@ -18,12 +18,13 @@ REPO = "https://github.com/Wandraker/rulik"
 APK = f"{REPO}/releases/latest/download/rulik.apk"
 EXE = f"{REPO}/releases/latest/download/rulik-server.exe"
 
-PAGES = ["index", "download", "guide", "layouts", "faq"]
+PAGES = ["index", "download", "guide", "gamepads", "layouts", "faq"]
 
 T = {
     "ru": {
-        "nav": {"index": "Главная", "download": "Скачать", "guide": "Как подключить", "layouts": "Раскладки", "faq": "Вопросы"},
+        "nav": {"index": "Главная", "download": "Скачать", "guide": "Как подключить", "gamepads": "Геймпады", "layouts": "Раскладки", "faq": "Вопросы"},
         "titles": {"index": "Rulik: рули своим ПК с телефона", "download": "Скачать Rulik", "guide": "Как подключить Rulik",
+                   "gamepads": "Как подключить геймпад к ПК",
                    "layouts": "Раскладки Rulik", "faq": "Вопросы о Rulik"},
         "desc": "Rulik превращает Android-телефон в геймпад, мышь и клавиатуру для ПК. Любая игра, Wi-Fi или кабель, свои раскладки.",
         "other": "EN", "footer": "Открытый проект под лицензией GPL-3.0.",
@@ -31,8 +32,9 @@ T = {
         "controls": "элементов",
     },
     "en": {
-        "nav": {"index": "Home", "download": "Download", "guide": "How to connect", "layouts": "Layouts", "faq": "FAQ"},
+        "nav": {"index": "Home", "download": "Download", "guide": "How to connect", "gamepads": "Gamepads", "layouts": "Layouts", "faq": "FAQ"},
         "titles": {"index": "Rulik: control your PC from your phone", "download": "Download Rulik", "guide": "How to connect Rulik",
+                   "gamepads": "How to connect a gamepad to PC",
                    "layouts": "Rulik layouts", "faq": "Rulik FAQ"},
         "desc": "Rulik turns an Android phone into a gamepad, mouse and keyboard for your PC. Any game, Wi-Fi or cable, your own layouts.",
         "other": "RU", "footer": "Open source under the GPL-3.0 license.",
