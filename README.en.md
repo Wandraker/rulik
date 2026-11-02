@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://wandraker.github.io/rulik/en/">Website</a> ·
   <a href="https://github.com/Wandraker/rulik/releases/latest">Download</a> ·
-  <a href="https://wandraker.github.io/rulik/en/guide.html">How to connect</a> ·
+  <a href="https://wandraker.github.io/rulik/en/wiki/">Wiki</a> ·
   <a href="README.md">Русский</a>
 </p>
 
@@ -35,7 +35,7 @@
 2. Install [`rulik.apk`](https://github.com/Wandraker/rulik/releases/latest/download/rulik.apk) on your phone (Android 10+).
 3. In the app, pick your PC on the Connect tab, enter the PIN from the server window, open Layouts and press ▶.
 
-The full guide with USB, firewall and anti-lag tips: [wandraker.github.io/rulik/en/guide.html](https://wandraker.github.io/rulik/en/guide.html).
+Guides, troubleshooting and everything about gamepads in the wiki: [wandraker.github.io/rulik/en/wiki/](https://wandraker.github.io/rulik/en/wiki/).
 
 <p align="center">
   <img src="docs/img/editor.jpg" width="49%" alt="Layout editor">

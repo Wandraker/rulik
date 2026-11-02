@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://wandraker.github.io/rulik/">Сайт</a> ·
   <a href="https://github.com/Wandraker/rulik/releases/latest">Скачать</a> ·
-  <a href="https://wandraker.github.io/rulik/guide.html">Как подключить</a> ·
+  <a href="https://wandraker.github.io/rulik/wiki/">Вики</a> ·
   <a href="README.en.md">English</a>
 </p>
 
@@ -35,7 +35,7 @@
 2. Поставьте на телефон (Android 10+) [`rulik.apk`](https://github.com/Wandraker/rulik/releases/latest/download/rulik.apk).
 3. В приложении выберите свой ПК на вкладке «Подключение», введите PIN из окна сервера, откройте «Раскладки» и нажмите ▶.
 
-Подробная инструкция с USB, брандмауэром и советами против лагов: [wandraker.github.io/rulik/guide.html](https://wandraker.github.io/rulik/guide.html).
+Подробные инструкции, решение проблем и всё про геймпады в вики: [wandraker.github.io/rulik/wiki/](https://wandraker.github.io/rulik/wiki/).
 
 <p align="center">
   <img src="docs/img/editor.jpg" width="49%" alt="Редактор раскладок">
