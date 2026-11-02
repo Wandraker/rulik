@@ -26,6 +26,15 @@
     <string name="settings">Настройки</string>
     <string name="device_name">Имя телефона на ПК</string>
     <string name="show_ping">Показывать пинг в игре</string>
+    <string name="aim_title">Точность нажатий</string>
+    <string name="aim_snap">Ближайшая кнопка при промахе</string>
+    <string name="aim_snap_hint">Тап в щель между кнопками засчитывается ближайшей.</string>
+    <string name="aim_edge">Щелчок на краю кнопок</string>
+    <string name="aim_edge_hint">Короткая вибрация, когда палец заезжает на кнопку или съезжает с неё: кнопки чувствуются, не глядя.</string>
+    <string name="aim_learn">Подстраиваться под пальцы</string>
+    <string name="aim_learn_hint">Rulik запоминает, куда вы на самом деле жмёте каждую кнопку, и чуть сдвигает её невидимую зону.</string>
+    <string name="aim_reset">Сбросить подстройку</string>
+    <string name="aim_reset_done">Подстройка сброшена</string>
     <string name="open_site">Сайт и инструкции</string>
     <string name="pin_title">PIN-код</string>
     <string name="pin_text">Введите PIN из окна Rulik Server на %1$s</string>

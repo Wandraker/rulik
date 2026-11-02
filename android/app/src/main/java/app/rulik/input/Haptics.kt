@@ -2,6 +2,7 @@ package app.rulik.input
 
 import android.content.Context
 import android.os.Build
+import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
 import android.os.VibratorManager
@@ -17,8 +18,13 @@ class Haptics(context: Context) {
         .getOrElse { VibrationEffect.createOneShot(12, VibrationEffect.DEFAULT_AMPLITUDE) }
     var enabled = true
     private var rumbling = false
+    private var lastTick = 0L
 
     fun tick() {
+        // край кнопки и нажатие соседней могут прийти в одном движении: один щелчок, не два
+        val now = SystemClock.uptimeMillis()
+        if (now - lastTick < 40) return
+        lastTick = now
         if (enabled && !rumbling) runCatching { vibrator?.vibrate(tickEffect) }
     }
 

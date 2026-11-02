@@ -2,6 +2,7 @@ package app.rulik.data
 
 import android.content.Context
 import android.os.Build
+import app.rulik.input.Aim
 import app.rulik.model.Layout
 import app.rulik.model.Presets
 import app.rulik.model.newId
@@ -100,6 +101,36 @@ class Store(private val context: Context) {
         get() = prefs.getBoolean("show_ping", true)
         set(v) = prefs.edit().putBoolean("show_ping", v).apply()
 
+    /** Промах между кнопками засчитывается ближайшей. */
+    var aimSnap: Boolean
+        get() = prefs.getBoolean("aim_snap", true)
+        set(v) = prefs.edit().putBoolean("aim_snap", v).apply()
+
+    /** Щелчок вибрацией, когда палец переходит край кнопки. */
+    var aimEdge: Boolean
+        get() = prefs.getBoolean("aim_edge", true)
+        set(v) = prefs.edit().putBoolean("aim_edge", v).apply()
+
+    /** Зоны кнопок подстраиваются под то, куда человек на самом деле жмёт. */
+    var aimLearn: Boolean
+        get() = prefs.getBoolean("aim_learn", true)
+        set(v) = prefs.edit().putBoolean("aim_learn", v).apply()
+
+    fun aimBiases(layoutId: String): Map<String, Aim.Bias> = Aim.decode(prefs.getString("aim_$layoutId", "") ?: "")
+
+    fun saveAimBiases(layoutId: String, biases: Map<String, Aim.Bias>) =
+        prefs.edit().putString("aim_$layoutId", Aim.encode(biases)).apply()
+
+    fun resetAim() {
+        val edit = prefs.edit()
+        prefs.all.keys.filter { it.startsWith("aim_") && it !in AIM_FLAGS }.forEach { edit.remove(it) }
+        edit.apply()
+    }
+
     fun pinFor(host: String): String = prefs.getString("pin_$host", "") ?: ""
     fun setPin(host: String, pin: String) = prefs.edit().putString("pin_$host", pin).apply()
+
+    private companion object {
+        val AIM_FLAGS = setOf("aim_snap", "aim_edge", "aim_learn")
+    }
 }

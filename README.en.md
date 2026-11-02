@@ -23,6 +23,7 @@
 - **Mouse and keyboard.** A touchpad with gestures (tap, two-finger right click, scrolling, dragging), any key and combos of up to 4 keys, and typing text straight on the PC.
 - **Wi-Fi or cable.** UDP over Wi-Fi with 2–10 ms of latency. Over a cable through USB tethering (no debugging needed) or `adb reverse`.
 - **Layout editor.** Buttons, sticks, D-pads and touchpads. Drag them around, resize them and pick a mode: hold, toggle or turbo. A stick can drive the left or right stick, WASD, arrows, the D-pad or the mouse.
+- **Fewer misses.** A tap in the gap between buttons goes to the closest one, the phone clicks with a short vibration at button edges, and each button's invisible hit zone adapts to where you actually press. All of it can be turned off in the settings.
 - **Gyro and tilt.** Gyro aiming (mouse or right stick, always on or while a button is held) and tilt steering for racing games.
 - **Game rumble.** The gamepad's motors are passed on to the phone's vibration motor.
 - **Several phones.** Each one gets its own gamepad, up to 8 per PC, which is handy for couch co-op.

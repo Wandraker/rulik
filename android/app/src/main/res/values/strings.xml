@@ -27,6 +27,15 @@
     <string name="settings">Settings</string>
     <string name="device_name">Phone name on the PC</string>
     <string name="show_ping">Show ping while playing</string>
+    <string name="aim_title">Touch accuracy</string>
+    <string name="aim_snap">Nearest button on a miss</string>
+    <string name="aim_snap_hint">A tap in the gap between buttons goes to the closest one.</string>
+    <string name="aim_edge">Click at button edges</string>
+    <string name="aim_edge_hint">A short vibration when your finger slides onto a button or off it, so you can feel them without looking.</string>
+    <string name="aim_learn">Adapt to my fingers</string>
+    <string name="aim_learn_hint">Rulik remembers where you actually press each button and shifts its invisible hit zone a little.</string>
+    <string name="aim_reset">Reset adaptation</string>
+    <string name="aim_reset_done">Adaptation reset</string>
     <string name="open_site">Website and instructions</string>
     <string name="pin_title">PIN code</string>
     <string name="pin_text">Enter the PIN shown in the Rulik Server window on %1$s</string>

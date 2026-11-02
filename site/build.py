@@ -30,7 +30,7 @@ NAV = [("index", ""), ("download", "download.html"), ("wiki", "wiki/"), ("layout
 # "@layouts" — ссылка на каталог раскладок, а не статья.
 WIKI = [
     ("start", "flag", ["index", "install", "wifi", "usb-tether", "adb"]),
-    ("app", "phone", ["presets", "editor", "mouse", "gyro", "multiplayer", "security"]),
+    ("app", "phone", ["presets", "editor", "accuracy", "mouse", "gyro", "multiplayer", "security"]),
     ("games", "play", ["gamepad", "no-gamepad", "@layouts"]),
     ("gamepads", "pad", ["gamepads", "xbox", "playstation", "other"]),
     ("problems", "wrench", ["not-found", "lag", "anticheat"]),

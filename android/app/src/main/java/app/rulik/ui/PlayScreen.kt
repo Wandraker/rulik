@@ -61,9 +61,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.toSize
 import app.rulik.R
 import app.rulik.RulikApp
+import app.rulik.input.Aim
 import app.rulik.input.ButtonHandler
 import app.rulik.input.Handler
 import app.rulik.input.Motion
+import app.rulik.model.CType
 import app.rulik.model.Layout
 
 @Composable
@@ -75,6 +77,11 @@ fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> 
         layout.controls.map { Handler.of(it, engine, if (layout.haptics) app.haptics else null) }
     }
     val owner = remember(layout) { HashMap<Long, Handler>() }
+    // палец сейчас на своей кнопке или съехал с неё: для щелчка на краю
+    val inside = remember(layout) { HashMap<Long, Boolean>() }
+    val store = app.store
+    val aim = remember(layout) { Aim(store.aimSnap, store.aimLearn, store.aimBiases(layout.id)) }
+    val edge = remember { store.aimEdge }
     var showText by remember { mutableStateOf(false) }
 
     DisposableEffect(layout) {
@@ -82,6 +89,10 @@ fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> 
         motion.start(layout)
         engine.onText = { showText = true }
         onDispose {
+            if (aim.learn) {
+                aim.keepOnly(layout.controls.map { it.id }.toSet())
+                store.saveAimBiases(layout.id, aim.biases)
+            }
             motion.stop()
             handlers.forEach { it.reset() }
             engine.releaseAll()
@@ -113,16 +124,20 @@ fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> 
                 .systemGestureExclusion()
                 .pointerInput(handlers) {
                     val slack = 8.dp.toPx()
+                    // радиус, в котором промах между кнопками засчитывается ближайшей: примерно полпальца
+                    val reach = 28.dp.toPx()
                     fun geo(h: Handler) = geoOf(h.c, size.toSize(), density)
-                    fun hit(p: Offset): Handler? {
-                        val sz = size.toSize()
-                        // сначала точное попадание сверху вниз, потом с запасом для толстых пальцев
-                        for (s in floatArrayOf(0f, slack)) {
-                            for (i in handlers.indices.reversed()) {
-                                if (geoOf(handlers[i].c, sz, density).contains(p, s)) return handlers[i]
-                            }
+                    fun hit(p: Offset): Handler? = aim.hit(p, handlers, { it.c }, ::geo, slack, reach)
+                    fun hasEdge(h: Handler) = h.c.type == CType.BUTTON || h.c.type == CType.DPAD
+                    // щелчок на краю: ушёл с кнопки дальше запаса или вернулся на неё
+                    fun edgeCheck(id: Long, h: Handler, p: Offset) {
+                        if (!edge || !hasEdge(h)) return
+                        val was = inside[id] ?: return
+                        val now = if (was) geo(h).contains(p, slack) else aim.shifted(h.c, geo(h)).contains(p)
+                        if (now != was) {
+                            inside[id] = now
+                            app.haptics.tick()
                         }
-                        return null
                     }
                     awaitPointerEventScope {
                         while (true) {
@@ -133,9 +148,14 @@ fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> 
                                 when {
                                     ch.changedToDownIgnoreConsumed() -> hit(ch.position)?.let { h ->
                                         owner[id] = h
+                                        inside[id] = true
+                                        aim.record(h.c, ch.position, geo(h))
                                         h.down(id, ch.position, geo(h), t)
                                     }
-                                    ch.changedToUpIgnoreConsumed() -> owner.remove(id)?.let { h -> h.up(id, geo(h), t) }
+                                    ch.changedToUpIgnoreConsumed() -> {
+                                        inside.remove(id)
+                                        owner.remove(id)?.let { h -> h.up(id, geo(h), t) }
+                                    }
                                     ch.pressed && ch.positionChanged() -> {
                                         val h = owner[id] ?: continue
                                         if (h.slidable && !geo(h).contains(ch.position, slack)) {
@@ -144,9 +164,14 @@ fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> 
                                             if (next is ButtonHandler && next !== h && next.slidable) {
                                                 h.up(id, geo(h), t)
                                                 owner[id] = next
+                                                inside[id] = true
                                                 next.down(id, ch.position, geo(next), t)
+                                                if (edge) app.haptics.tick()
+                                            } else {
+                                                edgeCheck(id, h, ch.position)
                                             }
                                         } else {
+                                            edgeCheck(id, h, ch.position)
                                             h.move(id, ch.position, geo(h), t)
                                         }
                                     }

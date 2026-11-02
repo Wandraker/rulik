@@ -275,11 +275,36 @@ fun ConnectScreen(app: RulikApp, connector: Connector, padding: PaddingValues) {
                 Text(stringResource(R.string.open_site))
             }
         }
+
+        CardBox {
+            Text(stringResource(R.string.aim_title), fontWeight = FontWeight.SemiBold)
+            SwitchHint(R.string.aim_snap, R.string.aim_snap_hint, app.store.aimSnap) { app.store.aimSnap = it }
+            SwitchHint(R.string.aim_edge, R.string.aim_edge_hint, app.store.aimEdge) { app.store.aimEdge = it }
+            SwitchHint(R.string.aim_learn, R.string.aim_learn_hint, app.store.aimLearn) { app.store.aimLearn = it }
+            val resetDone = stringResource(R.string.aim_reset_done)
+            TextButton(onClick = {
+                app.store.resetAim()
+                Toast.makeText(context, resetDone, Toast.LENGTH_SHORT).show()
+            }) { Text(stringResource(R.string.aim_reset)) }
+        }
         Spacer(Modifier.height(16.dp))
     }
 
     connector.askPinFor?.let { t ->
         PinDialog(t.host, onDone = connector::submitPin, onDismiss = { connector.askPinFor = null })
+    }
+}
+
+/** Переключатель с пояснением мелким текстом. */
+@Composable
+private fun SwitchHint(title: Int, hint: Int, initial: Boolean, onChange: (Boolean) -> Unit) {
+    var on by remember { mutableStateOf(initial) }
+    Row(Modifier.fillMaxWidth().padding(top = 10.dp), verticalAlignment = Alignment.CenterVertically) {
+        Column(Modifier.weight(1f).padding(end = 12.dp)) {
+            Text(stringResource(title))
+            Text(stringResource(hint), color = Dim, style = MaterialTheme.typography.bodySmall)
+        }
+        Switch(checked = on, onCheckedChange = { on = it; onChange(it) })
     }
 }
 
