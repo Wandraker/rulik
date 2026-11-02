@@ -1,0 +1,21 @@
+Copyright (c) 2026 Wandraker. All rights reserved.
+
+Everything in this folder (the website: texts, wiki articles, screenshots,
+images, styles, scripts and the build script) is NOT covered by the GPL-3.0
+license in the repository root. You may view it and link to it, but you may
+not copy, modify or republish it, in whole or in part, without written
+permission from the author.
+
+The Rulik app and server code outside this folder remain under GPL-3.0.
+
+---
+
+Copyright (c) 2026 Wandraker. Все права защищены.
+
+Всё в этой папке (сайт: тексты, статьи вики, скриншоты, изображения, стили,
+скрипты и скрипт сборки) НЕ распространяется под лицензией GPL-3.0 из корня
+репозитория. Сайт можно смотреть и давать на него ссылки, но копировать,
+изменять и публиковать его целиком или частично без письменного разрешения
+автора нельзя.
+
+Код приложения и сервера Rulik вне этой папки остаётся под GPL-3.0.

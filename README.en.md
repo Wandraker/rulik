@@ -89,4 +89,6 @@ A `vX.Y.Z` tag builds the APK and the exe and publishes a GitHub release. The ta
 
 Copyright © 2026 Wandraker. [GPL-3.0](LICENSE). You may use, change and share the code, but any modified version must also be open source under GPL-3.0 and keep the credits. Passing Rulik off as your own closed app is not allowed.
 
+The website (the [site](site) folder: texts, screenshots, design) is not covered by GPL-3.0; all rights are reserved, see [site/LICENSE](site/LICENSE).
+
 ViGEmBus and vgamepad are distributed under their own licenses.

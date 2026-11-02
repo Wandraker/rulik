@@ -34,4 +34,4 @@ Only Android and Windows for now. The protocol is open and documented in the rep
 
 ## How much does it cost?
 
-Free, no ads, no sign-up. The code is open under GPL-3.0: you can study and improve it, but any version based on it must stay open too.
+Free, no ads, no sign-up. The app's code is open under GPL-3.0: you can study and improve it, but any version based on it must stay open too.
