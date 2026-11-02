@@ -1,0 +1,25 @@
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+android/.idea/
+android/.kotlin/
+*.iml
+*.jks
+*.keystore
+
+# Python
+__pycache__/
+*.pyc
+server/build/
+server/dist/
+server/*.spec
+.venv/
+
+# Сайт собирается в CI
+site/dist/
+
+.claude/
+.DS_Store
+Thumbs.db

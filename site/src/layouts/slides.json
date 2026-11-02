@@ -1,0 +1,8 @@
+{"_meta":{"name_ru":"Презентация","name_en":"Presentation","about_ru":"Листать слайды, указка тачпадом, чёрный экран. Держится одной рукой.","about_en":"Flip slides, point with the touchpad, black out the screen. One-handed."},
+"name":"Presentation","portrait":true,"controls":[
+{"type":"TOUCHPAD","x":0.5,"y":0.25,"w":0.9,"h":0.8,"out":"MOUSE","shape":"ROUNDED"},
+{"type":"BUTTON","x":0.27,"y":0.62,"w":0.42,"h":0.3,"label":"◀","action":{"kind":"KEY","keys":[37]},"shape":"ROUNDED"},
+{"type":"BUTTON","x":0.73,"y":0.62,"w":0.42,"h":0.3,"label":"▶","action":{"kind":"KEY","keys":[39]},"shape":"ROUNDED"},
+{"type":"BUTTON","x":0.2,"y":0.84,"w":0.22,"label":"F5","action":{"kind":"KEY","keys":[116]}},
+{"type":"BUTTON","x":0.5,"y":0.84,"w":0.22,"label":"⬛","action":{"kind":"KEY","keys":[66]}},
+{"type":"BUTTON","x":0.8,"y":0.84,"w":0.22,"label":"Esc","action":{"kind":"KEY","keys":[27]}}]}

@@ -1,0 +1,134 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "android/**"
+      - "server/**"
+      - ".github/workflows/build.yml"
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    outputs:
+      signed: ${{ steps.key.outputs.signed }}
+    defaults:
+      run:
+        working-directory: android
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Strings are generated from tools/strings.py
+        run: |
+          python3 tools/strings.py
+          git diff --exit-code -- app/src/main/res
+
+      - name: Unit tests
+        run: ./gradlew testReleaseUnitTest --no-daemon
+
+      - name: Restore signing key
+        id: key
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -z "$KEYSTORE_BASE64" ]; then
+            echo "::warning::Секрета KEYSTORE_BASE64 нет: APK подписан отладочным ключом, релиз не публикуется."
+            echo "signed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          echo "$KEYSTORE_BASE64" | base64 -d > "$RUNNER_TEMP/rulik.jks"
+          echo "RULIK_KEYSTORE=$RUNNER_TEMP/rulik.jks" >> "$GITHUB_ENV"
+          echo "signed=true" >> "$GITHUB_OUTPUT"
+
+      - name: Build APK
+        env:
+          RULIK_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: ./gradlew assembleRelease --no-daemon
+
+      - run: cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/rulik.apk"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rulik-apk
+          path: rulik.apk
+
+  server:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: server
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Tests
+        run: python -m unittest discover -s tests -v
+
+      - name: Build exe
+        run: powershell -File build.ps1
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rulik-server
+          path: server/dist/rulik-server.exe
+
+  release:
+    # без ключа релиз не публикуем: APK с другой подписью не обновит уже установленный
+    if: startsWith(github.ref, 'refs/tags/v') && needs.android.outputs.signed == 'true'
+    needs: [android, server]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Versions match the tag
+        run: |
+          TAG="${GITHUB_REF_NAME#v}"
+          APP=$(grep -oP 'versionName = "\K[^"]+' android/app/build.gradle.kts)
+          SRV=$(grep -oP '__version__ = "\K[^"]+' server/rulik/__init__.py)
+          if [ "$APP" != "$TAG" ] || [ "$SRV" != "$TAG" ]; then
+            echo "::error::Тег $TAG, а в приложении $APP и в сервере $SRV"
+            exit 1
+          fi
+
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Релиз $GITHUB_REF_NAME уже есть, пропускаю"
+            exit 0
+          fi
+          NOTES="release-notes/$GITHUB_REF_NAME.md"
+          [ -f "$NOTES" ] || echo "Rulik ${GITHUB_REF_NAME#v}" > "$NOTES"
+          (cd out && sha256sum rulik.apk rulik-server.exe > SHA256SUMS.txt)
+          gh release create "$GITHUB_REF_NAME" out/rulik.apk out/rulik-server.exe out/SHA256SUMS.txt \
+            --title "Rulik ${GITHUB_REF_NAME#v}" \
+            --notes-file "$NOTES" \
+            --latest

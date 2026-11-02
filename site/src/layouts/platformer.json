@@ -1,0 +1,11 @@
+{"_meta":{"name_ru":"Платформер","name_en":"Platformer","about_ru":"Крупная крестовина и четыре кнопки. Для Hollow Knight, Celeste, Cuphead и похожих.","about_en":"A big D-pad and four buttons. For Hollow Knight, Celeste, Cuphead and the like."},
+"name":"Platformer","controls":[
+{"type":"DPAD","x":0.17,"y":0.62,"w":0.55,"out":"DPAD"},
+{"type":"BUTTON","x":0.84,"y":0.76,"w":0.2,"label":"A","action":{"kind":"PAD","code":4096}},
+{"type":"BUTTON","x":0.93,"y":0.56,"w":0.2,"label":"B","action":{"kind":"PAD","code":8192}},
+{"type":"BUTTON","x":0.75,"y":0.56,"w":0.2,"label":"X","action":{"kind":"PAD","code":16384}},
+{"type":"BUTTON","x":0.84,"y":0.36,"w":0.2,"label":"Y","action":{"kind":"PAD","code":32768}},
+{"type":"BUTTON","x":0.14,"y":0.16,"w":0.3,"h":0.14,"label":"LB","action":{"kind":"PAD","code":256},"shape":"ROUNDED"},
+{"type":"BUTTON","x":0.86,"y":0.12,"w":0.3,"h":0.14,"label":"RB","action":{"kind":"PAD","code":512},"shape":"ROUNDED"},
+{"type":"BUTTON","x":0.44,"y":0.24,"w":0.12,"label":"⧉","action":{"kind":"PAD","code":32}},
+{"type":"BUTTON","x":0.56,"y":0.24,"w":0.12,"label":"☰","action":{"kind":"PAD","code":16}}]}

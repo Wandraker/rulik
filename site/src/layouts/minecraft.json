@@ -1,0 +1,16 @@
+{"_meta":{"name_ru":"Minecraft","name_en":"Minecraft","about_ru":"Ходьба плавающим стиком, камера тачпадом, хотбар колесом.","about_en":"Walk with a floating stick, look with the touchpad, hotbar on the wheel."},
+"name":"Minecraft","controls":[
+{"type":"TOUCHPAD","x":0.62,"y":0.52,"w":0.95,"h":0.8,"out":"MOUSE","shape":"ROUNDED","sens":1.3},
+{"type":"STICK","x":0.15,"y":0.66,"w":0.42,"out":"WASD","floating":true},
+{"type":"BUTTON","x":0.88,"y":0.72,"w":0.2,"label":"⛏","action":{"kind":"MOUSE","code":1}},
+{"type":"BUTTON","x":0.88,"y":0.45,"w":0.15,"label":"✋","action":{"kind":"MOUSE","code":2}},
+{"type":"BUTTON","x":0.76,"y":0.88,"w":0.14,"label":"␣","action":{"kind":"KEY","keys":[32]}},
+{"type":"BUTTON","x":0.62,"y":0.88,"w":0.13,"label":"Shift","action":{"kind":"KEY","keys":[16]},"mode":"TOGGLE"},
+{"type":"BUTTON","x":0.3,"y":0.46,"w":0.12,"label":"Ctrl","action":{"kind":"KEY","keys":[17]}},
+{"type":"BUTTON","x":0.3,"y":0.24,"w":0.12,"label":"E","action":{"kind":"KEY","keys":[69]}},
+{"type":"BUTTON","x":0.18,"y":0.24,"w":0.12,"label":"Q","action":{"kind":"KEY","keys":[81]}},
+{"type":"BUTTON","x":0.94,"y":0.22,"w":0.12,"label":"F","action":{"kind":"KEY","keys":[70]}},
+{"type":"BUTTON","x":0.42,"y":0.22,"w":0.1,"label":"‹","action":{"kind":"WHEEL_UP"}},
+{"type":"BUTTON","x":0.5,"y":0.22,"w":0.1,"label":"›","action":{"kind":"WHEEL_DOWN"}},
+{"type":"BUTTON","x":0.06,"y":0.08,"w":0.1,"label":"Esc","action":{"kind":"KEY","keys":[27]}},
+{"type":"BUTTON","x":0.94,"y":0.06,"w":0.1,"label":"T","action":{"kind":"KEY","keys":[84]}}]}

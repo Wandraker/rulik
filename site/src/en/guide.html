@@ -1,0 +1,68 @@
+<h1>How to connect</h1>
+<p class="lead">Three steps and a couple of minutes. After that the phone reconnects on its own.</p>
+
+<ol class="steps">
+  <li>
+    <h3>Start Rulik Server on your PC</h3>
+    <p>The window shows the PC's address and a PIN. If there's a driver warning, press "Install driver" and restart the server: without the ViGEmBus driver only mouse and keyboard work. When Windows asks about the firewall, allow access on private networks.</p>
+  </li>
+  <li>
+    <h3>Install the app on your phone</h3>
+    <p>Download <code>rulik.apk</code> from the <a href="download.html">Download</a> page and open it. Android will ask you to allow installs from your browser or file manager.</p>
+  </li>
+  <li>
+    <h3>Connect and play</h3>
+    <p>Your PC shows up on the Connect tab. Tap it, enter the PIN from the server window, go to Layouts and press ▶. In the game's control settings, pick the gamepad.</p>
+  </li>
+</ol>
+
+<div class="doc">
+  <nav class="toc">
+    <a href="#wifi">Wi-Fi</a>
+    <a href="#tether">USB tethering</a>
+    <a href="#adb">USB via adb</a>
+    <a href="#editor">Layout editor</a>
+    <a href="#gyro">Gyro and tilt</a>
+    <a href="#lag">If it lags</a>
+  </nav>
+  <div>
+    <section id="wifi">
+      <h2>Wi-Fi</h2>
+      <p>The phone and the PC must be on the same network. The PC can be wired to the router, which is even better. Discovery uses a broadcast packet, so there's nothing to type. If the PC doesn't show up, enter the address from the server window by hand, for example <code>192.168.1.52</code>.</p>
+      <div class="note">Still can't connect? Press "Firewall" in the server window: it adds a rule for port 47800.</div>
+    </section>
+    <section id="tether">
+      <h2>USB tethering</h2>
+      <p>The easiest wired option, no debugging needed. Plug the phone into the PC and turn on "USB tethering" in Android settings (Hotspot &amp; tethering). Keep the Wi-Fi tab in the app: the PC shows up in the list and the traffic goes over the cable. The PC doesn't need a Wi-Fi adapter for this.</p>
+      <div class="note">Windows marks the phone's network as public and blocks incoming connections from it by default. The server notices this and shows a warning: press "Firewall" once and the rule works on every network.</div>
+      <p>If no new network shows up in Windows after you turn on tethering, open Device Manager: the phone should appear as "Remote NDIS based Internet Sharing Device". A different cable (not a charge-only one) or another USB port usually helps.</p>
+    </section>
+    <section id="adb">
+      <h2>USB via adb</h2>
+      <p>For people with USB debugging turned on. Install <a href="https://developer.android.com/tools/releases/platform-tools">platform-tools</a> or put <code>adb.exe</code> next to the server. Plug in the phone, press "USB (adb)" in the server window, then switch the app to USB and press "Connect via USB".</p>
+    </section>
+    <section id="editor">
+      <h2>Layout editor</h2>
+      <p>In the layout list press ⋮ and "Edit", or use "⋯" while playing. The plus button adds buttons, sticks, D-pads and touchpads. Drag an element to move it, pull the corner circle to resize it, and open its properties with the sliders button.</p>
+      <ul>
+        <li><b>Button</b> presses a gamepad button, a key, a combo of up to 4 keys, a mouse button or the wheel. Modes: hold, toggle, turbo.</li>
+        <li><b>Stick</b> works as the left or right stick, WASD, arrows, D-pad or mouse. It can float to where your thumb lands.</li>
+        <li><b>Touchpad</b> moves the mouse (tap, two-finger right click, scrolling) or turns the camera like a right stick.</li>
+      </ul>
+      <p>Layouts are shareable: "Share" sends them as text, and "Import from clipboard" adds a copied layout. Ready-made ones are on the <a href="layouts.html">Layouts</a> page.</p>
+    </section>
+    <section id="gyro">
+      <h2>Gyro and tilt</h2>
+      <p>Turn on the gyro in the layout settings (the gear in the editor): it moves the mouse or the right stick. The "while held" mode works with a "Gyro while held" button, like aiming on a Switch. Tilt steering drives the left stick, and the full-turn angle is adjustable. If an axis goes the wrong way, turn on invert.</p>
+    </section>
+    <section id="lag">
+      <h2>If it lags</h2>
+      <ul>
+        <li>Put the phone on 5 GHz Wi-Fi and wire the PC to the router.</li>
+        <li>Turn on the ping display in the app: 2–10 ms is normal. Over 30 means the network is the problem.</li>
+        <li>Try USB tethering: the cable adds almost no delay.</li>
+        <li>Turn off battery saver on the phone.</li>
+      </ul>
+    </section>
+  </div>
+</div>

@@ -1,0 +1,34 @@
+<h1>FAQ</h1>
+
+<details open>
+  <summary>Which games does it work with?</summary>
+  <p>Any game you can play with an Xbox gamepad or with mouse and keyboard. Rulik creates a real virtual controller in the system, so it doesn't matter where the game came from: Steam, Epic, GOG, the Xbox app, a disc or anywhere else.</p>
+</details>
+<details>
+  <summary>Why the ViGEmBus driver?</summary>
+  <p>Without a driver, Windows doesn't let a program create a gamepad. ViGEmBus is used by DS4Windows, Steam Input and many emulators. It ships inside Rulik Server and installs with one button.</p>
+</details>
+<details>
+  <summary>How much latency?</summary>
+  <p>On home Wi-Fi it's usually 2–10 ms one way, and even less over USB tethering. Packets are tiny and go over UDP with no extra round trips. If a packet gets lost, the phone resends the full state four times a second, so a button never gets stuck.</p>
+</details>
+<details>
+  <summary>Can two people play?</summary>
+  <p>Yes. Every connected phone gets its own gamepad, up to 8 devices per PC. Great for split-screen games.</p>
+</details>
+<details>
+  <summary>Will anti-cheat ban me?</summary>
+  <p>Rulik provides a normal virtual gamepad and normal Windows input, and injects nothing into games. Most games accept that without issue. Some competitive anti-cheats block virtual devices or emulated input, and then Rulik won't work in that game. Check the rules of the specific game.</p>
+</details>
+<details>
+  <summary>Is it safe? Can anyone on the network control my PC?</summary>
+  <p>No: by default the server asks for a PIN that only shows up in its window. You can change the PIN at any time, and "Disconnect all" kicks every phone right away. The server only accepts control input and gives no access to files.</p>
+</details>
+<details>
+  <summary>What about iPhone, macOS, Linux?</summary>
+  <p>Android and Windows only for now. The protocol is open and documented in the repository, so ports to other systems are possible.</p>
+</details>
+<details>
+  <summary>How much does it cost?</summary>
+  <p>Nothing. The code is open under the GPL-3.0 license: you can study and improve it, but any version based on it must stay open source too. <a href="{{REPO}}">github.com/Wandraker/rulik</a>.</p>
+</details>
