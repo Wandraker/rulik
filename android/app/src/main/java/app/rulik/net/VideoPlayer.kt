@@ -259,11 +259,19 @@ object Decoders {
         Log.i("Rulik", "${c.name} vendor parameters: ${vendor.joinToString()}")
         val names = vendor
             .filter { n -> listOf("low-latency", "lowlatency", "low_latency").any { n.contains(it, ignoreCase = true) } }
-        if (names.isEmpty()) return false
-        runCatching { c.subscribeToVendorParameters(names) }
+        // MediaTek в MIUI/HyperOS дорисовывает и «улучшает» кадры (VPP), и каждый шаг держит кадр у себя.
+        // Для игры это только задержка: выключаем всё, что выключается, и просим ускорить процессор декодера.
+        val off = vendor.filter { n ->
+            n.endsWith("miui.param.bypass-vpp") || n.endsWith("cpu.boost.mode.value") ||
+                (n.contains(".vpp.") && n.endsWith(".disabled.value")) || n.endsWith("vpp.disabled.value") ||
+                n.contains(".vpp.independent.disabled.")
+        }
+        if (names.isEmpty() && off.isEmpty()) return false
         val b = Bundle()
-        names.forEach { b.putInt(it, 1) }
-        return runCatching { c.setParameters(b) }.isSuccess
+        (names + off).forEach { b.putInt(it, 1) }
+        Log.i("Rulik", "set vendor parameters: ${(names + off).joinToString()}")
+        runCatching { c.setParameters(b) }
+        return names.isNotEmpty()
     }
 }
 
