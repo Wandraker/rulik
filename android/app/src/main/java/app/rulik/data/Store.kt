@@ -122,7 +122,7 @@ class Store(private val context: Context) {
         set(v) = prefs.edit().putInt("stream_res", v).apply()
 
     var streamFps: Int
-        get() = prefs.getInt("stream_fps", 60)
+        get() = prefs.getInt("stream_fps", if (maxRefresh() >= 119f) 120 else 60)
         set(v) = prefs.edit().putInt("stream_fps", v).apply()
 
     var streamMbps: Int
@@ -137,6 +137,12 @@ class Store(private val context: Context) {
     var streamAudio: Boolean
         get() = prefs.getBoolean("stream_audio", true)
         set(v) = prefs.edit().putBoolean("stream_audio", v).apply()
+
+    /** Самая высокая частота экрана телефона. На 120 Гц стрим по умолчанию тоже 120 кадров: так меньше задержка. */
+    private fun maxRefresh(): Float = runCatching {
+        val dm = context.getSystemService(Context.DISPLAY_SERVICE) as android.hardware.display.DisplayManager
+        dm.getDisplay(android.view.Display.DEFAULT_DISPLAY).supportedModes.maxOf { it.refreshRate }
+    }.getOrDefault(60f)
 
     fun streamRequest(): ByteArray {
         val (w, h) = STREAM_SIZES.getOrElse(streamRes) { 0 to 0 }

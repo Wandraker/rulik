@@ -97,6 +97,21 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    /**
+     * Во время игры просим самую высокую частоту экрана (90/120 Гц). MIUI и другие часто держат
+     * приложения на 60 Гц, а каждый лишний кадр экрана это до 16 мс ожидания картинки и касаний.
+     */
+    private fun fastestRefresh(on: Boolean) {
+        val attrs = window.attributes
+        attrs.preferredDisplayModeId = if (on) {
+            val d = window.decorView.display ?: return
+            val cur = d.mode
+            d.supportedModes.filter { it.physicalWidth == cur.physicalWidth && it.physicalHeight == cur.physicalHeight }
+                .maxByOrNull { it.refreshRate }?.modeId ?: 0
+        } else 0
+        window.attributes = attrs
+    }
+
     @Composable
     private fun Fullscreen(on: Boolean, portrait: Boolean?) {
         DisposableEffect(on, portrait) {
@@ -105,11 +120,13 @@ class MainActivity : ComponentActivity() {
                 controller.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
                 controller.hide(WindowInsetsCompat.Type.systemBars())
                 window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                fastestRefresh(true)
                 requestedOrientation = if (portrait == true) ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT
                 else ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
             } else {
                 controller.show(WindowInsetsCompat.Type.systemBars())
                 window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
+                fastestRefresh(false)
                 requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
             }
             onDispose {}

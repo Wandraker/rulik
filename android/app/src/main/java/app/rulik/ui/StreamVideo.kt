@@ -1,5 +1,7 @@
 package app.rulik.ui
 
+import android.os.Build
+import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import androidx.compose.foundation.background
@@ -78,6 +80,12 @@ fun StreamVideo(app: RulikApp, modifier: Modifier = Modifier, onRect: (Rect) -> 
                 SurfaceView(ctx).apply {
                     holder.addCallback(object : SurfaceHolder.Callback {
                         override fun surfaceCreated(h: SurfaceHolder) {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                                // экран подстроится под частоту стрима: 120 кадров на 120 Гц без пропусков
+                                runCatching {
+                                    h.surface.setFrameRate(app.store.streamFps.toFloat(), Surface.FRAME_RATE_COMPATIBILITY_FIXED_SOURCE)
+                                }
+                            }
                             val p = VideoPlayer(h.surface)
                             player.value = p
                             client.onVideo = p::feed
