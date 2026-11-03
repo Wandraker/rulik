@@ -158,7 +158,9 @@ class VideoPlayer(private val surface: Surface) {
 
             override fun onOutputBufferAvailable(codec: MediaCodec, index: Int, info: MediaCodec.BufferInfo) {
                 if (closed) return
-                runCatching { codec.releaseOutputBuffer(index, true) }
+                // с меткой времени «сейчас»: если до обновления экрана готов ещё кадр, система покажет
+                // только свежий. Без неё кадры из пачки идут по одному на каждый кадр экрана, и картинка «догоняет».
+                runCatching { codec.releaseOutputBuffer(index, System.nanoTime()) }
                 val now = SystemClock.uptimeMillis()
                 synchronized(lock) {
                     winFrames++
