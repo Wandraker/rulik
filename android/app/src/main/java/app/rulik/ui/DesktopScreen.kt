@@ -34,6 +34,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,6 +43,7 @@ import app.rulik.RulikApp
 import app.rulik.model.Action
 import app.rulik.model.Kind
 import app.rulik.net.Proto
+import app.rulik.net.WifiBoost
 import kotlinx.coroutines.withTimeoutOrNull
 import kotlin.math.roundToInt
 
@@ -60,7 +62,14 @@ fun DesktopScreen(app: RulikApp, onExit: () -> Unit) {
     var rect by remember { mutableStateOf(Rect.Zero) }
     var showText by remember { mutableStateOf(false) }
 
-    DisposableEffect(Unit) { onDispose { engine.releaseAll() } }
+    val context = LocalContext.current
+    DisposableEffect(Unit) {
+        val wifi = WifiBoost(context).also { it.start() }
+        onDispose {
+            wifi.stop()
+            engine.releaseAll()
+        }
+    }
     BackHandler(onBack = onExit)
 
     fun moveTo(p: Offset) {

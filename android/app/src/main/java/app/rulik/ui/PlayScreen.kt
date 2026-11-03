@@ -67,6 +67,7 @@ import app.rulik.input.Handler
 import app.rulik.input.Motion
 import app.rulik.model.CType
 import app.rulik.model.Layout
+import app.rulik.net.WifiBoost
 
 @Composable
 fun PlayScreen(layout: Layout, app: RulikApp, stream: Boolean, onExit: () -> Unit, onEdit: () -> Unit) {
@@ -89,6 +90,7 @@ fun PlayScreen(layout: Layout, app: RulikApp, stream: Boolean, onExit: () -> Uni
     DisposableEffect(layout) {
         val motion = Motion(context, engine) { view.display?.rotation ?: 0 }
         motion.start(layout)
+        val wifi = WifiBoost(context).also { it.start() }
         engine.onText = { showText = true }
         onDispose {
             if (aim.learn) {
@@ -96,6 +98,7 @@ fun PlayScreen(layout: Layout, app: RulikApp, stream: Boolean, onExit: () -> Uni
                 store.saveAimBiases(layout.id, aim.biases)
             }
             motion.stop()
+            wifi.stop()
             handlers.forEach { it.reset() }
             engine.releaseAll()
             engine.onText = null
