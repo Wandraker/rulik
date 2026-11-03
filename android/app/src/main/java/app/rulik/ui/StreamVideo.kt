@@ -131,7 +131,8 @@ fun StreamVideo(app: RulikApp, modifier: Modifier = Modifier, onRect: (Rect) -> 
         if (first && app.store.showPing) {
             Text(
                 "${stats.fps} fps · ${"%.1f".format(stats.mbps)} Mbit/s · ${stats.decodeMs} ms" +
-                    (if (stats.dropped > 0) " · −${stats.dropped}" else ""),
+                    (if (stats.dropped > 0) " · −${stats.dropped}" else "") +
+                    (if (stats.decoder.isNotEmpty()) " · ${stats.decoder}" else ""),
                 color = Color.White.copy(alpha = 0.7f), fontSize = 11.sp,
                 modifier = Modifier.align(Alignment.BottomStart).padding(8.dp)
                     .clip(RoundedCornerShape(6.dp)).background(Color(0x88000000)).padding(horizontal = 6.dp, vertical = 2.dp),

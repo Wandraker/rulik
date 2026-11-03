@@ -1,18 +1,29 @@
 package app.rulik.net
 
 import android.media.MediaCodec
+import android.media.MediaCodecInfo
+import android.media.MediaCodecList
 import android.media.MediaFormat
 import android.os.Build
+import android.os.Bundle
 import android.os.Handler
 import android.os.HandlerThread
 import android.os.SystemClock
+import android.util.Log
 import android.view.Surface
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import java.nio.ByteBuffer
 import java.util.ArrayDeque
 
-data class VideoStats(val fps: Int = 0, val mbps: Float = 0f, val decodeMs: Int = 0, val dropped: Int = 0)
+data class VideoStats(
+    val fps: Int = 0,
+    val mbps: Float = 0f,
+    val decodeMs: Int = 0,
+    val dropped: Int = 0,
+    /** Короткое имя декодера и «LL», если он умеет режим низкой задержки. Для диагностики. */
+    val decoder: String = "",
+)
 
 /**
  * Собирает кадры из пакетов VIDEO и сразу отдаёт их аппаратному декодеру.
@@ -31,6 +42,7 @@ class VideoPlayer(private val surface: Surface) {
     private val lock = Object()
     private var codec: MediaCodec? = null
     private var configured: Pair<Int, Int>? = null
+    private var decoderLabel = ""
     private val freeInputs = ArrayDeque<Int>()
     private val ready = ArrayDeque<Frame>()
     private val building = HashMap<Int, Frame>()
@@ -125,10 +137,16 @@ class VideoPlayer(private val surface: Surface) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) setInteger(MediaFormat.KEY_LOW_LATENCY, 1)
             setInteger(MediaFormat.KEY_PRIORITY, 0)
             setInteger(MediaFormat.KEY_OPERATING_RATE, Short.MAX_VALUE.toInt())
-            // декодеры Qualcomm без этого держат несколько кадров у себя
-            setInteger("vendor.qti-ext-dec-low-latency.enable", 1)
+            // без этих ключей декодеры многих чипов держат у себя 1–2 кадра, а это +16–33 мс.
+            // Незнакомые ключи декодер просто пропускает.
+            setInteger("vendor.qti-ext-dec-low-latency.enable", 1)      // Qualcomm
+            setInteger("vendor.qti-ext-dec-picture-order.enable", 1)    // Qualcomm
+            setInteger("vendor.rtc-ext-dec-low-latency.enable", 1)      // Exynos
+            setInteger("vendor.low-latency.enable", 1)                  // Amlogic и другие
+            setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-req", 1)
+            setInteger("vendor.hisi-ext-low-latency-video-dec.video-scene-for-low-latency-rdy", -1)
         }
-        val c = MediaCodec.createDecoderByType(MediaFormat.MIMETYPE_VIDEO_AVC)
+        val (c, ll) = Decoders.open()
         c.setCallback(object : MediaCodec.Callback() {
             override fun onInputBufferAvailable(codec: MediaCodec, index: Int) {
                 synchronized(lock) {
@@ -152,6 +170,7 @@ class VideoPlayer(private val surface: Surface) {
                             mbps = winBytes * 8f / 1000f / span,
                             decodeMs = if (winFrames > 0) (winDecode / winFrames).toInt() else 0,
                             dropped = dropped,
+                            decoder = decoderLabel,
                         )
                         winStart = now; winFrames = 0; winBytes = 0; winDecode = 0
                     }
@@ -166,8 +185,11 @@ class VideoPlayer(private val surface: Surface) {
             override fun onOutputFormatChanged(codec: MediaCodec, format: MediaFormat) {}
         }, handler)
         c.configure(format, surface, null, 0)
+        val vendor = Decoders.enableVendorLowLatency(c)
         c.start()
         codec = c
+        decoderLabel = c.name.removePrefix("c2.").removePrefix("OMX.").removeSuffix(".decoder") +
+            if (ll || vendor) " · LL" else ""
     }
 
     private fun pump() {
@@ -204,6 +226,44 @@ class VideoPlayer(private val surface: Surface) {
             freeInputs.clear()
         }
         thread.quitSafely()
+    }
+}
+
+/** Выбор декодера: аппаратный, и лучше тот, что умеет низкую задержку. */
+object Decoders {
+    private const val MIME = MediaFormat.MIMETYPE_VIDEO_AVC
+
+    /** Декодер и умеет ли он KEY_LOW_LATENCY по своим же данным. */
+    fun open(): Pair<MediaCodec, Boolean> {
+        val all = MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos
+            .filter { !it.isEncoder && it.supportedTypes.any { t -> t.equals(MIME, ignoreCase = true) } }
+        // .secure только для защищённого видео (DRM), обычный поток он не примет
+        val hardware = all.filter { it.isHardwareAccelerated && !it.isSoftwareOnly && !it.name.endsWith(".secure") }
+        fun lowLatency(info: MediaCodecInfo) = Build.VERSION.SDK_INT >= Build.VERSION_CODES.R && runCatching {
+            info.getCapabilitiesForType(MIME).isFeatureSupported(MediaCodecInfo.CodecCapabilities.FEATURE_LowLatency)
+        }.getOrDefault(false)
+        for (info in hardware.sortedByDescending { lowLatency(it) }) {
+            val c = runCatching { MediaCodec.createByCodecName(info.name) }.getOrNull() ?: continue
+            return c to lowLatency(info)
+        }
+        return MediaCodec.createDecoderByType(MIME) to false
+    }
+
+    /**
+     * Android 12+ сам перечисляет ключи производителя. Включаем всё, что похоже на низкую
+     * задержку: так работает и на чипах, ключей которых мы заранее не знаем (MediaTek и др.).
+     */
+    fun enableVendorLowLatency(c: MediaCodec): Boolean {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return false
+        val vendor = runCatching { c.supportedVendorParameters }.getOrDefault(emptyList())
+        Log.i("Rulik", "${c.name} vendor parameters: ${vendor.joinToString()}")
+        val names = vendor
+            .filter { n -> listOf("low-latency", "lowlatency", "low_latency").any { n.contains(it, ignoreCase = true) } }
+        if (names.isEmpty()) return false
+        runCatching { c.subscribeToVendorParameters(names) }
+        val b = Bundle()
+        names.forEach { b.putInt(it, 1) }
+        return runCatching { c.setParameters(b) }.isSuccess
     }
 }
 
