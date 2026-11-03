@@ -26,11 +26,13 @@ data class Target(val host: String, val port: Int = Proto.PORT, val usb: Boolean
 sealed interface ConnState {
     data object Idle : ConnState
     data class Connecting(val target: Target) : ConnState
-    data class Connected(val target: Target, val serverName: String, val gamepad: Boolean) : ConnState
+    data class Connected(val target: Target, val serverName: String, val gamepad: Boolean, val stream: Boolean = false) : ConnState
     data class Failed(val target: Target, val reason: Reason, val detail: String = "") : ConnState
 }
 
 enum class Reason { BAD_PIN, FULL, TIMEOUT, NETWORK }
+
+data class StreamInfo(val status: Int, val width: Int, val height: Int, val fps: Int, val encoder: String)
 
 private interface Transport {
     fun send(data: ByteArray)
@@ -43,6 +45,7 @@ private class UdpTransport(target: Target) : Transport {
     private val socket = DatagramSocket().apply {
         connect(InetSocketAddress(InetAddress.getByName(target.host), target.port))
         trafficClass = 0xB8 // DSCP EF: роутеры с QoS пропускают такие пакеты первыми
+        receiveBufferSize = 4 shl 20 // ключевой кадр видео прилетает пачкой в сотню пакетов
     }
     private val buf = ByteArray(2048)
 
@@ -99,6 +102,29 @@ class Client {
     var onRumble: ((large: Int, small: Int) -> Unit)? = null
     /** Вызывается каждые 250 мс: движок досылает состояние (зажатые клавиши, геймпад). */
     var onHeartbeat: (() -> Unit)? = null
+    /** Кусок кадра видео (тело пакета VIDEO). Зовётся из сетевого потока. */
+    @Volatile var onVideo: ((ByteBuffer) -> Unit)? = null
+    /** Кусок звука (тело пакета AUDIO). */
+    @Volatile var onAudio: ((ByteBuffer) -> Unit)? = null
+    private val _streamInfo = MutableStateFlow<StreamInfo?>(null)
+    val streamInfo: StateFlow<StreamInfo?> = _streamInfo
+
+    /** Пока задан, повторяем его раз в секунду: так ПК не забудет, что мы смотрим, даже после перезапуска. */
+    @Volatile private var streamRequest: ByteArray? = null
+    private var beats = 0
+
+    fun startStream(request: ByteArray) {
+        _streamInfo.value = null
+        streamRequest = request
+        send(request)
+    }
+
+    fun stopStream() {
+        if (streamRequest == null) return
+        streamRequest = null
+        send(Proto.streamStop())
+        _streamInfo.value = null
+    }
 
     @Volatile private var transport: Transport? = null
     private val queue = LinkedBlockingQueue<ByteArray>(512)
@@ -146,7 +172,8 @@ class Client {
                     caps = welcomeCaps
                     lastPong = SystemClock.uptimeMillis()
                     _alive.value = true
-                    _state.value = ConnState.Connected(target, welcomeName, caps and Proto.CAP_GAMEPAD != 0)
+                    _state.value = ConnState.Connected(target, welcomeName, caps and Proto.CAP_GAMEPAD != 0,
+                        caps and Proto.CAP_STREAM != 0)
                     jobs = jobs + launch { heartbeatLoop() }
                 }
             }
@@ -159,6 +186,7 @@ class Client {
     }
 
     fun disconnect() {
+        streamRequest = null
         transport?.trySend(Proto.bye())
         closeTransport()
         _state.value = ConnState.Idle
@@ -221,7 +249,9 @@ class Client {
                         welcome = status
                         val s = _state.value
                         if (s is ConnState.Connected && status == Proto.ST_OK) {
-                            _state.value = s.copy(gamepad = welcomeCaps and Proto.CAP_GAMEPAD != 0)
+                            _state.value = s.copy(gamepad = welcomeCaps and Proto.CAP_GAMEPAD != 0,
+                                stream = welcomeCaps and Proto.CAP_STREAM != 0)
+                            streamRequest?.let { t.trySend(it) }
                         }
                     }
                 }
@@ -231,6 +261,15 @@ class Client {
                     lastPong = SystemClock.uptimeMillis()
                     _alive.value = true
                     _ping.value = (now - sent).coerceAtLeast(0)
+                }
+                Proto.VIDEO -> onVideo?.invoke(body)
+                Proto.AUDIO -> onAudio?.invoke(body)
+                Proto.STREAM_INFO -> {
+                    val status = body.get().toInt() and 0xFF
+                    val w = body.short.toInt() and 0xFFFF
+                    val h = body.short.toInt() and 0xFFFF
+                    val fps = body.get().toInt() and 0xFF
+                    _streamInfo.value = StreamInfo(status, w, h, fps, Proto.readStr(body))
                 }
                 Proto.RUMBLE -> {
                     val large = body.get().toInt() and 0xFF
@@ -252,6 +291,7 @@ class Client {
             val now = SystemClock.uptimeMillis()
             send(Proto.ping((now and 0x7fffffff).toInt(), _ping.value ?: 0))
             onHeartbeat?.invoke()
+            if (++beats % 4 == 0) streamRequest?.let { send(it) }
             if (now - lastPong > 2500) {
                 _alive.value = false
                 _ping.value = null

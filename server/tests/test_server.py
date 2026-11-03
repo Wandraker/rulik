@@ -114,3 +114,42 @@ class ServerTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class StreamPartsTest(unittest.TestCase):
+    def test_flv_to_annexb(self):
+        from rulik.stream import FlvReader
+        sps, pps, idr, p = b"\x67\x64\x00\x20", b"\x68\xee", b"\x65\x88\x84", b"\x41\x9a"
+
+        def tag(kind, data):
+            return bytes((kind,)) + len(data).to_bytes(3, "big") + b"\0" * 7 + data + struct.pack(">I", len(data) + 11)
+
+        conf = b"\x01\x64\x00\x20\xff\xe1" + struct.pack(">H", len(sps)) + sps + b"\x01" + struct.pack(">H", len(pps)) + pps
+        flv = b"FLV\x01\x01\x00\x00\x00\x09" + b"\0\0\0\0"
+        flv += tag(18, b"meta")
+        flv += tag(9, b"\x17\x00\x00\x00\x00" + conf)
+        flv += tag(9, b"\x17\x01\x00\x00\x00" + struct.pack(">I", len(idr)) + idr)
+        flv += tag(9, b"\x27\x01\x00\x00\x00" + struct.pack(">I", len(p)) + p)
+        pos = [0]
+
+        def read(n):
+            chunk = flv[pos[0]:pos[0] + n]
+            pos[0] += len(chunk)
+            return chunk
+
+        frames = list(FlvReader(read).frames())
+        start = b"\0\0\0\1"
+        self.assertEqual(frames, [(True, start + sps + start + pps + start + idr), (False, start + p)])
+
+    def test_packets_split_and_fit(self):
+        from rulik.stream import CHUNK, fit, packets
+        data = bytes(range(256)) * 20
+        pkts = list(packets(7, True, data, 123))
+        self.assertEqual(len(pkts), -(-len(data) // CHUNK))
+        body = b"".join(P.parse(x)[1][P.VIDEO_FMT.size:] for x in pkts)
+        self.assertEqual(body, data)
+        self.assertTrue(all(len(x) <= 1300 for x in pkts))
+        self.assertEqual(fit(1920, 1080, 1280, 720), (1280, 720))
+        self.assertEqual(fit(2560, 1440, 1920, 1080), (1920, 1080))
+        self.assertEqual(fit(1920, 1080, 0, 0), (1920, 1080))
+        self.assertEqual(fit(3440, 1440, 1280, 720), (1280, 534))

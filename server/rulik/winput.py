@@ -28,6 +28,9 @@ MOUSEEVENTF_XDOWN = 0x0080
 MOUSEEVENTF_XUP = 0x0100
 MOUSEEVENTF_WHEEL = 0x0800
 MOUSEEVENTF_HWHEEL = 0x1000
+MOUSEEVENTF_VIRTUALDESK = 0x4000
+MOUSEEVENTF_ABSOLUTE = 0x8000
+SM_XVIRTUALSCREEN, SM_YVIRTUALSCREEN, SM_CXVIRTUALSCREEN, SM_CYVIRTUALSCREEN = 76, 77, 78, 79
 
 MAPVK_VK_TO_VSC_EX = 4
 
@@ -119,6 +122,18 @@ def mouse_move(dx: int, dy: int):
     _send(inp)
 
 
+def mouse_to(x: int, y: int):
+    """Курсор в точку рабочего стола (пиксели виртуального экрана, со всеми мониторами)."""
+    m = user32.GetSystemMetrics
+    vx, vy = m(SM_XVIRTUALSCREEN), m(SM_YVIRTUALSCREEN)
+    vw, vh = max(m(SM_CXVIRTUALSCREEN), 1), max(m(SM_CYVIRTUALSCREEN), 1)
+    inp = INPUT(type=INPUT_MOUSE)
+    inp.mi.dx = ((x - vx) * 65535 + vw // 2) // max(vw - 1, 1)
+    inp.mi.dy = ((y - vy) * 65535 + vh // 2) // max(vh - 1, 1)
+    inp.mi.dwFlags = MOUSEEVENTF_MOVE | MOUSEEVENTF_ABSOLUTE | MOUSEEVENTF_VIRTUALDESK
+    _send(inp)
+
+
 def mouse_button(button: int, down: bool):
     spec = _MOUSE_FLAGS.get(button)
     if not spec:
@@ -144,7 +159,7 @@ def scroll(vertical: int, horizontal: int):
 def dry_run():
     """Вместо ввода в Windows печатаем события. Удобно проверять телефон, не трогая ПК."""
     g = globals()
-    for name in ("key", "text", "mouse_move", "mouse_button", "scroll"):
+    for name in ("key", "text", "mouse_move", "mouse_to", "mouse_button", "scroll"):
         def logger(*args, _n=name):
             print(f"[dry] {_n}{args}", flush=True)
         g[name] = logger

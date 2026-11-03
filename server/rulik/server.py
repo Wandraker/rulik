@@ -1,11 +1,12 @@
 """Сетевое ядро: UDP для Wi-Fi, TCP для USB (adb reverse) и всё, что приходит, в ввод ПК."""
 
+import queue
 import socket
 import struct
 import threading
 import time
 
-from . import gamepad, protocol as P, winput
+from . import gamepad, protocol as P, stream, winput
 from .i18n import t
 
 RELEASE_AFTER = 1.5   # нет пакетов столько секунд: отпускаем все кнопки
@@ -27,12 +28,41 @@ class Session:
         self.pad_failed = False
         self.rtt_ms = None
         self.idle = False
+        self.watching = False
+        self._video = None
+        self._skip_to_key = False
 
     def send(self, data: bytes):
         try:
             self._send(data)
         except OSError:
             pass
+
+    def send_frame(self, packets, key):
+        """Кадр видео. По Wi-Fi уходит сразу. По кабелю идёт через очередь: если она забита,
+        кадр выкидываем, иначе видео встанет в TCP перед кнопками и пингом."""
+        if self.addr is not None:
+            for p in packets:
+                self.send(p)
+            return
+        if self._video is None:
+            self._video = queue.Queue(maxsize=3)
+            threading.Thread(target=self._video_loop, daemon=True).start()
+        if self._skip_to_key and not key:
+            return
+        try:
+            self._video.put_nowait(packets)
+            self._skip_to_key = False
+        except queue.Full:
+            self._skip_to_key = True
+
+    def _video_loop(self):
+        while True:
+            packets = self._video.get()
+            if packets is None:
+                return
+            for p in packets:
+                self.send(p)
 
     # --- клавиатура и мышь ---
 
@@ -89,6 +119,11 @@ class Session:
             self.pad.reset()
 
     def close(self):
+        if self._video is not None:
+            try:
+                self._video.put_nowait(None)
+            except queue.Full:
+                pass
         self.release_all()
         if self.pad:
             self.pad.close()
@@ -106,6 +141,7 @@ class Server:
         self._stop = threading.Event()
         self.udp = None
         self.tcp = None
+        self.streamer = stream.Streamer(self)
 
     # --- служебное ---
 
@@ -146,6 +182,7 @@ class Server:
 
     def stop(self):
         self._stop.set()
+        self.streamer.stop()
         with self.lock:
             for s in self.sessions.values():
                 s.send(P.header(P.BYE))
@@ -158,6 +195,7 @@ class Server:
                 pass
 
     def kick_all(self):
+        self.streamer.stop()
         with self.lock:
             for s in list(self.sessions.values()):
                 s.send(P.header(P.BYE))
@@ -186,6 +224,8 @@ class Server:
                     return
                 continue
             conn.setsockopt(socket.IPPROTO_TCP, socket.TCP_NODELAY, 1)
+            # маленький буфер: лучше выкинуть кадр, чем копить секунду видео в кабеле
+            conn.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 1 << 16)
             threading.Thread(target=self._tcp_client, args=(conn,), daemon=True).start()
 
     def _tcp_client(self, conn):
@@ -219,6 +259,7 @@ class Server:
         with self.lock:
             s = self.sessions.pop(key, None)
         if s:
+            self.streamer.unwatch(s.id)
             s.close()
             self.log(t("left", name=s.name))
             self.emit()
@@ -232,6 +273,7 @@ class Server:
                     quiet = now - s.last_seen
                     if quiet > DROP_AFTER and s.addr is not None:
                         self.sessions.pop(key)
+                        self.streamer.unwatch(s.id)
                         s.close()
                         self.log(t("vanished", name=s.name))
                         changed = True
@@ -276,7 +318,7 @@ class Server:
     def _hello(self, body, key, send):
         pin, pos = P.read_str(body, 0)
         name, _ = P.read_str(body, pos)
-        caps = P.CAP_GAMEPAD if gamepad.available() else 0
+        caps = (P.CAP_GAMEPAD if gamepad.available() else 0) | P.CAP_STREAM
         if self.pin and pin != self.pin:
             send(P.welcome(P.BAD_PIN, caps, self.name))
             self.log(t("bad_pin", name=name or key))
@@ -319,5 +361,15 @@ class Server:
             s.send(P.pong(body))
             if len(body) >= 8:
                 s.rtt_ms = struct.unpack_from("<I", body, 4)[0] or None
+        elif kind == P.MOUSE_ABS:
+            nx, ny = P.ABS_FMT.unpack_from(body)
+            winput.mouse_to(*self.streamer.absolute(nx, ny))
+        elif kind == P.STREAM_START:
+            w, h, fps, kbps, mon, flags = P.START_FMT.unpack_from(body)
+            s.watching = True
+            self.streamer.watch(s, stream.Params(w, h, fps, kbps, mon), bool(flags & P.START_AUDIO))
+        elif kind == P.STREAM_STOP:
+            s.watching = False
+            self.streamer.unwatch(s.id)
         elif kind == P.BYE:
             self._drop(s.id)

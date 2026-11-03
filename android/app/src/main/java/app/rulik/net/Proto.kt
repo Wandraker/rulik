@@ -18,10 +18,16 @@ object Proto {
     const val PING = 0x08
     const val BYE = 0x09
     const val HELD = 0x0B
+    const val STREAM_START = 0x0C
+    const val STREAM_STOP = 0x0D
+    const val MOUSE_ABS = 0x0E
     const val DISCOVER = 0x10
 
     const val WELCOME = 0x81
     const val RUMBLE = 0x83
+    const val VIDEO = 0x84
+    const val STREAM_INFO = 0x85
+    const val AUDIO = 0x86
     const val PONG = 0x88
     const val DISCOVER_REPLY = 0x90
 
@@ -31,6 +37,12 @@ object Proto {
     const val ST_REHELLO = 3
 
     const val CAP_GAMEPAD = 0x01
+    const val CAP_STREAM = 0x02
+
+    const val SS_OK = 0
+    const val SS_NO_FFMPEG = 1
+    const val SS_FAILED = 2
+    const val SS_STOPPED = 3
 
     private fun packet(type: Int, bodySize: Int): ByteBuffer =
         ByteBuffer.allocate(4 + bodySize).order(ByteOrder.LITTLE_ENDIAN).apply {
@@ -75,6 +87,17 @@ object Proto {
     fun ping(stamp: Int, lastRtt: Int): ByteArray = packet(PING, 8).putInt(stamp).putInt(lastRtt).array()
 
     fun bye(): ByteArray = packet(BYE, 0).array()
+
+    /** Попросить картинку с ПК. 0×0: размер как у монитора. */
+    fun streamStart(width: Int, height: Int, fps: Int, kbps: Int, monitor: Int, audio: Boolean): ByteArray =
+        packet(STREAM_START, 11).putShort(width.toShort()).putShort(height.toShort()).put(fps.toByte())
+            .putInt(kbps).put(monitor.toByte()).put(if (audio) 1 else 0).array()
+
+    fun streamStop(): ByteArray = packet(STREAM_STOP, 0).array()
+
+    /** Курсор в точку картинки, обе координаты 0..65535. */
+    fun mouseAbs(x: Int, y: Int): ByteArray =
+        packet(MOUSE_ABS, 4).putShort(x.toShort()).putShort(y.toShort()).array()
 
     fun held(mouseMask: Int, keys: Collection<Int>): ByteArray {
         val list = keys.take(120)

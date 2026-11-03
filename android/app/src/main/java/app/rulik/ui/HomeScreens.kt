@@ -48,6 +48,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.SegmentedButton
 import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -80,6 +81,7 @@ import app.rulik.net.FoundPc
 import app.rulik.net.Reason
 import app.rulik.net.Target
 import kotlinx.coroutines.launch
+import kotlin.math.roundToInt
 
 const val SITE = "https://wandraker.github.io/rulik/"
 
@@ -108,7 +110,7 @@ class Connector(private val app: RulikApp) {
 }
 
 @Composable
-private fun CardBox(content: @Composable () -> Unit) {
+internal fun CardBox(content: @Composable () -> Unit) {
     Card(
         Modifier.fillMaxWidth().padding(vertical = 6.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer),
@@ -126,8 +128,6 @@ fun ConnectScreen(app: RulikApp, connector: Connector, padding: PaddingValues) {
     var found by remember { mutableStateOf<List<FoundPc>>(emptyList()) }
     var scanning by remember { mutableStateOf(false) }
     var manual by remember { mutableStateOf(app.store.lastHost.takeIf { !app.store.usbMode } ?: "") }
-    var deviceName by remember { mutableStateOf(app.store.deviceName) }
-    var showPing by remember { mutableStateOf(app.store.showPing) }
 
     fun scan() {
         if (scanning) return
@@ -260,6 +260,24 @@ fun ConnectScreen(app: RulikApp, connector: Connector, padding: PaddingValues) {
             }
         }
 
+        Spacer(Modifier.height(16.dp))
+    }
+
+    connector.askPinFor?.let { t ->
+        PinDialog(t.host, onDone = connector::submitPin, onDismiss = { connector.askPinFor = null })
+    }
+}
+
+@Composable
+fun SettingsScreen(app: RulikApp, padding: PaddingValues) {
+    val context = LocalContext.current
+    var deviceName by remember { mutableStateOf(app.store.deviceName) }
+    var showPing by remember { mutableStateOf(app.store.showPing) }
+    Column(
+        Modifier.fillMaxSize().padding(padding).verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 8.dp),
+    ) {
+        Text(stringResource(R.string.settings), style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold,
+            modifier = Modifier.padding(vertical = 8.dp))
         CardBox {
             Text(stringResource(R.string.settings), fontWeight = FontWeight.SemiBold)
             OutlinedTextField(
@@ -287,11 +305,44 @@ fun ConnectScreen(app: RulikApp, connector: Connector, padding: PaddingValues) {
                 Toast.makeText(context, resetDone, Toast.LENGTH_SHORT).show()
             }) { Text(stringResource(R.string.aim_reset)) }
         }
+        StreamSettings(app)
         Spacer(Modifier.height(16.dp))
     }
+}
 
-    connector.askPinFor?.let { t ->
-        PinDialog(t.host, onDone = connector::submitPin, onDismiss = { connector.askPinFor = null })
+@Composable
+private fun StreamSettings(app: RulikApp) {
+    val store = app.store
+    var res by remember { mutableStateOf(store.streamRes) }
+    var fps by remember { mutableStateOf(store.streamFps) }
+    var mbps by remember { mutableStateOf(store.streamMbps.toFloat()) }
+    var alpha by remember { mutableStateOf(store.overlayAlpha) }
+    CardBox {
+        Text(stringResource(R.string.stream_title), fontWeight = FontWeight.SemiBold)
+        SwitchHint(R.string.stream_audio, R.string.stream_audio_hint, store.streamAudio) { store.streamAudio = it }
+        Text(stringResource(R.string.stream_res), color = Dim, style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 10.dp, bottom = 4.dp))
+        val resNames = listOf(stringResource(R.string.res_native), "1080p", "720p", "480p")
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            resNames.forEachIndexed { i, name ->
+                SegmentedButton(selected = res == i, onClick = { res = i; store.streamRes = i },
+                    shape = SegmentedButtonDefaults.itemShape(i, resNames.size)) { Text(name, maxLines = 1) }
+            }
+        }
+        Text(stringResource(R.string.stream_fps), color = Dim, style = MaterialTheme.typography.bodySmall,
+            modifier = Modifier.padding(top = 12.dp, bottom = 4.dp))
+        val rates = listOf(30, 60, 90, 120)
+        SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
+            rates.forEachIndexed { i, r ->
+                SegmentedButton(selected = fps == r, onClick = { fps = r; store.streamFps = r },
+                    shape = SegmentedButtonDefaults.itemShape(i, rates.size)) { Text("$r") }
+            }
+        }
+        Text(stringResource(R.string.stream_bitrate, mbps.roundToInt()), modifier = Modifier.padding(top = 12.dp))
+        Slider(value = mbps, onValueChange = { mbps = it; store.streamMbps = it.roundToInt() }, valueRange = 3f..50f)
+        Text(stringResource(R.string.stream_bitrate_hint), color = Dim, style = MaterialTheme.typography.bodySmall)
+        Text(stringResource(R.string.overlay_alpha, (alpha * 100).roundToInt()), modifier = Modifier.padding(top = 12.dp))
+        Slider(value = alpha, onValueChange = { alpha = it; store.overlayAlpha = it }, valueRange = 0.15f..1f)
     }
 }
 

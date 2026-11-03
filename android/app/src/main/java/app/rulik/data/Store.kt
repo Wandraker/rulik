@@ -116,6 +116,33 @@ class Store(private val context: Context) {
         get() = prefs.getBoolean("aim_learn", true)
         set(v) = prefs.edit().putBoolean("aim_learn", v).apply()
 
+    /** Стрим: 0 как у монитора, 1 1080p, 2 720p, 3 480p. */
+    var streamRes: Int
+        get() = prefs.getInt("stream_res", 0)
+        set(v) = prefs.edit().putInt("stream_res", v).apply()
+
+    var streamFps: Int
+        get() = prefs.getInt("stream_fps", 60)
+        set(v) = prefs.edit().putInt("stream_fps", v).apply()
+
+    var streamMbps: Int
+        get() = prefs.getInt("stream_mbps", 15)
+        set(v) = prefs.edit().putInt("stream_mbps", v).apply()
+
+    /** Насколько видна раскладка поверх картинки, 0.15..1. */
+    var overlayAlpha: Float
+        get() = prefs.getFloat("overlay_alpha", 0.5f)
+        set(v) = prefs.edit().putFloat("overlay_alpha", v).apply()
+
+    var streamAudio: Boolean
+        get() = prefs.getBoolean("stream_audio", true)
+        set(v) = prefs.edit().putBoolean("stream_audio", v).apply()
+
+    fun streamRequest(): ByteArray {
+        val (w, h) = STREAM_SIZES.getOrElse(streamRes) { 0 to 0 }
+        return app.rulik.net.Proto.streamStart(w, h, streamFps, streamMbps * 1000, 0, streamAudio)
+    }
+
     fun aimBiases(layoutId: String): Map<String, Aim.Bias> = Aim.decode(prefs.getString("aim_$layoutId", "") ?: "")
 
     fun saveAimBiases(layoutId: String, biases: Map<String, Aim.Bias>) =
@@ -132,5 +159,6 @@ class Store(private val context: Context) {
 
     private companion object {
         val AIM_FLAGS = setOf("aim_snap", "aim_edge", "aim_learn")
+        val STREAM_SIZES = listOf(0 to 0, 1920 to 1080, 1280 to 720, 854 to 480)
     }
 }

@@ -69,7 +69,7 @@ import app.rulik.model.CType
 import app.rulik.model.Layout
 
 @Composable
-fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> Unit) {
+fun PlayScreen(layout: Layout, app: RulikApp, stream: Boolean, onExit: () -> Unit, onEdit: () -> Unit) {
     val engine = app.engine
     val context = LocalContext.current
     val view = LocalView.current
@@ -83,6 +83,8 @@ fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> 
     val aim = remember(layout) { Aim(store.aimSnap, store.aimLearn, store.aimBiases(layout.id)) }
     val edge = remember { store.aimEdge }
     var showText by remember { mutableStateOf(false) }
+    // поверх картинки с ПК раскладка полупрозрачная, чтобы не закрывать игру
+    val opacity = remember(layout, stream) { if (stream) layout.opacity * store.overlayAlpha else layout.opacity }
 
     DisposableEffect(layout) {
         val motion = Motion(context, engine) { view.display?.rotation ?: 0 }
@@ -118,6 +120,7 @@ fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> 
 
     val tm = rememberTextMeasurer()
     Box(Modifier.fillMaxSize().background(Color.Black)) {
+        if (stream) StreamVideo(app)
         Canvas(
             Modifier
                 .fillMaxSize()
@@ -184,7 +187,7 @@ fun PlayScreen(layout: Layout, app: RulikApp, onExit: () -> Unit, onEdit: () -> 
         ) {
             val sz = Size(size.width, size.height)
             layout.controls.forEachIndexed { i, c ->
-                drawControl(c, geoOf(c, sz, density), handlers[i], tm, layout.opacity)
+                drawControl(c, geoOf(c, sz, density), handlers[i], tm, opacity)
             }
         }
 
@@ -230,7 +233,7 @@ private fun StatusPill(app: RulikApp, modifier: Modifier, onEdit: () -> Unit, on
 
 /** Набор текста на ПК: каждая буква уходит сразу, стирание шлёт Backspace. */
 @Composable
-private fun TextDialog(onSend: (String) -> Unit, onKey: (Int) -> Unit, onDismiss: () -> Unit) {
+internal fun TextDialog(onSend: (String) -> Unit, onKey: (Int) -> Unit, onDismiss: () -> Unit) {
     var value by remember { mutableStateOf(TextFieldValue("")) }
     val focus = remember { FocusRequester() }
     LaunchedEffect(Unit) { focus.requestFocus() }

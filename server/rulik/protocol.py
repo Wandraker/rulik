@@ -21,11 +21,17 @@ TEXT = 0x07
 PING = 0x08
 BYE = 0x09
 HELD = 0x0B
+STREAM_START = 0x0C
+STREAM_STOP = 0x0D
+MOUSE_ABS = 0x0E
 DISCOVER = 0x10
 
 # ПК -> телефон
 WELCOME = 0x81
 RUMBLE = 0x83
+VIDEO = 0x84
+STREAM_INFO = 0x85
+AUDIO = 0x86
 PONG = 0x88
 DISCOVER_REPLY = 0x90
 
@@ -37,10 +43,21 @@ REHELLO = 3  # сервер не знает это устройство (пер�
 
 # Флаги возможностей сервера
 CAP_GAMEPAD = 0x01
+CAP_STREAM = 0x02
+
+# Статусы STREAM_INFO
+SS_OK = 0
+SS_NO_FFMPEG = 1
+SS_FAILED = 2
+SS_STOPPED = 3
 
 PAD_FMT = struct.Struct("<HBBhhhh")
 MOVE_FMT = struct.Struct("<hh")
 U32 = struct.Struct("<I")
+START_FMT = struct.Struct("<HHBIBB")   # ширина, высота, кадры, кбит/с, монитор, флаги (бит 0: звук)
+START_AUDIO = 0x01
+VIDEO_FMT = struct.Struct("<IHHBI")    # кадр, кусок, кусков, флаги, метка времени
+ABS_FMT = struct.Struct("<HH")
 
 
 def header(kind: int) -> bytes:
@@ -78,3 +95,16 @@ def pong(stamp: bytes) -> bytes:
 
 def rumble(large: int, small: int) -> bytes:
     return header(RUMBLE) + bytes((large & 0xFF, small & 0xFF))
+
+
+def video(frame: int, idx: int, count: int, flags: int, stamp: int, chunk: bytes) -> bytes:
+    return header(VIDEO) + VIDEO_FMT.pack(frame, idx, count, flags, stamp) + chunk
+
+
+def stream_info(status: int, width: int, height: int, fps: int, encoder: str) -> bytes:
+    return header(STREAM_INFO) + struct.pack("<BHHB", status, width, height, fps) + short_str(encoder)
+
+
+def audio(seq: int, rate: int, pcm: bytes) -> bytes:
+    """Кусок звука: float32 стерео, little-endian."""
+    return header(AUDIO) + struct.pack("<HI", seq & 0xFFFF, rate) + pcm

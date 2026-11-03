@@ -6,7 +6,7 @@ from pathlib import Path
 import tkinter as tk
 from tkinter import messagebox
 
-from . import __version__, config, gamepad, netinfo
+from . import __version__, config, gamepad, netinfo, stream
 from .i18n import t
 from .server import Server
 
@@ -30,7 +30,7 @@ class App:
         self.root = tk.Tk()
         self.root.title(f"Rulik Server {__version__}")
         self.root.configure(bg=BG)
-        self.root.geometry("460x640")
+        self.root.geometry("460x740")
         self.root.minsize(420, 560)
         self.root.protocol("WM_DELETE_WINDOW", self.quit)
         base = Path(getattr(sys, "_MEIPASS", Path(__file__).resolve().parent.parent))
@@ -97,6 +97,15 @@ class App:
         self.pad_label.pack(side="left")
         self.driver_btn = self._button(row, t("install_driver"), self.install_driver, accent=True)
 
+        c = self._card(t("stream"))
+        row = tk.Frame(c, bg=CARD)
+        row.pack(fill="x")
+        self.stream_label = tk.Label(row, bg=CARD, fg=FG, font=(FONT, 10), justify="left", wraplength=280)
+        self.stream_label.pack(side="left")
+        self.ffmpeg_btn = self._button(row, t("get_ffmpeg"), self.get_ffmpeg, accent=True)
+        self.ffmpeg_path = stream.find_ffmpeg(self.cfg)
+        self.downloading = None
+
         c = self._card(t("devices"))
         self.devices = tk.Label(c, bg=CARD, fg=FG, font=(FONT, 10), justify="left", anchor="w")
         self.devices.pack(fill="x")
@@ -135,6 +144,21 @@ class App:
             self.pad_label.config(text=t("pad_missing"),
                                   fg="#ffb347")
             self.driver_btn.pack(side="right")
+        st = self.server.streamer
+        if self.downloading is not None:
+            self.stream_label.config(text=t("ffmpeg_loading", pct=int(self.downloading * 100)), fg=DIM)
+            self.ffmpeg_btn.pack_forget()
+        elif not self.ffmpeg_path:
+            self.stream_label.config(text=t("no_ffmpeg"), fg="#ffb347")
+            self.ffmpeg_btn.pack(side="right")
+        elif st.watchers and st.status == 0:
+            w, h = st.size
+            self.stream_label.config(fg=OK, text=t("streaming", w=w, h=h, fps=round(st.stats["fps"]),
+                                                    mbps=round(st.stats["kbps"] / 1000, 1), enc=st.encoder))
+            self.ffmpeg_btn.pack_forget()
+        else:
+            self.stream_label.config(text=t("stream_ready"), fg=OK)
+            self.ffmpeg_btn.pack_forget()
         lines = []
         for s in self.server.clients():
             via = t("via_net") if s.addr else "USB (adb)"
@@ -143,6 +167,8 @@ class App:
                 parts.append(f"{s.rtt_ms} {t('ms')}")
             if s.pad:
                 parts.append(t("gamepad"))
+            if s.watching:
+                parts.append(t("watching"))
             if s.idle:
                 parts.append(t("lost"))
             lines.append("  ·  ".join(parts))
@@ -180,7 +206,7 @@ class App:
 
     def _tick(self):
         self.refresh()
-        self.root.after(2000, self._tick)
+        self.root.after(1000 if self.downloading is not None or self.server.streamer.watchers else 2000, self._tick)
 
     # --- действия ---
 
@@ -200,6 +226,24 @@ class App:
         else:
             import webbrowser
             webbrowser.open("https://github.com/nefarius/ViGEmBus/releases/latest")
+
+    def get_ffmpeg(self):
+        if self.downloading is not None:
+            return
+        self.downloading = 0.0
+        self.refresh()
+
+        def work():
+            try:
+                path = stream.download_ffmpeg(lambda x: setattr(self, "downloading", x))
+                self.events.put(("log", t("ffmpeg_ok")))
+            except Exception as e:
+                path = None
+                self.events.put(("log", t("ffmpeg_fail", err=e)))
+            self.ffmpeg_path = path or stream.find_ffmpeg(self.cfg)
+            self.downloading = None
+            self.events.put(("change", None))
+        threading.Thread(target=work, daemon=True).start()
 
     def usb(self):
         ok, msg = netinfo.adb_reverse(self.server.port)
