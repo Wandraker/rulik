@@ -116,14 +116,83 @@ class Client {
     fun startStream(request: ByteArray) {
         _streamInfo.value = null
         streamRequest = request
-        send(request)
+        val t = target
+        if (t != null && t.usb) openVideoChannel(t) else send(request)
     }
 
     fun stopStream() {
         if (streamRequest == null) return
         streamRequest = null
-        send(Proto.streamStop())
+        if (videoJob != null) closeVideoChannel(sayStop = true) else send(Proto.streamStop())
         _streamInfo.value = null
+    }
+
+    // --- отдельный канал для видео по кабелю ---
+    // В одном TCP видео и ответы на пинг стоят в одной очереди: кадр застрял в adb, и пинг ждёт его.
+    // Поэтому по USB картинка идёт вторым соединением, а кнопки и пинг остаются в первом, лёгком.
+
+    @Volatile private var videoJob: Job? = null
+    @Volatile private var videoTransport: Transport? = null
+
+    private fun openVideoChannel(target: Target) {
+        closeVideoChannel(sayStop = false)
+        videoJob = scope.launch {
+            val ctx = kotlin.coroutines.coroutineContext
+            while (ctx.isActive && streamRequest != null) {
+                val vt = runCatching { TcpTransport(target) }.getOrNull()
+                if (vt == null) { delay(500); continue }
+                videoTransport = vt
+                val keepAlive = launch {
+                    // раз в секунду: сервер видит, что мы живы и всё ещё смотрим
+                    while (isActive) {
+                        streamRequest?.let { vt.trySend(it) }
+                        delay(1000)
+                    }
+                }
+                vt.trySend(Proto.hello(pin, deviceName + VIDEO_SUFFIX))
+                while (ctx.isActive) {
+                    val data = runCatching { vt.receive() }.getOrNull() ?: break
+                    val (type, body) = Proto.parse(data) ?: continue
+                    if (type == Proto.WELCOME) {
+                        val status = body.get().toInt() and 0xFF
+                        if (status == Proto.ST_REHELLO) vt.trySend(Proto.hello(pin, deviceName + VIDEO_SUFFIX))
+                        else if (status == Proto.ST_OK) streamRequest?.let { vt.trySend(it) }
+                    } else {
+                        streamPacket(type, body)
+                    }
+                }
+                keepAlive.cancel()
+                runCatching { vt.close() }
+                videoTransport = null
+                delay(300) // кабель дёрнули или сервер перезапустили: пробуем снова
+            }
+        }
+    }
+
+    private fun closeVideoChannel(sayStop: Boolean) {
+        videoJob?.cancel()
+        videoJob = null
+        videoTransport?.let { vt ->
+            if (sayStop) {
+                // из UI-потока сеть трогать нельзя
+                scope.launch { vt.trySend(Proto.streamStop()); vt.trySend(Proto.bye()); runCatching { vt.close() } }
+            } else runCatching { vt.close() }
+        }
+        videoTransport = null
+    }
+
+    private fun streamPacket(type: Int, body: ByteBuffer) {
+        when (type) {
+            Proto.VIDEO -> onVideo?.invoke(body)
+            Proto.AUDIO -> onAudio?.invoke(body)
+            Proto.STREAM_INFO -> {
+                val status = body.get().toInt() and 0xFF
+                val w = body.short.toInt() and 0xFFFF
+                val h = body.short.toInt() and 0xFFFF
+                val fps = body.get().toInt() and 0xFF
+                _streamInfo.value = StreamInfo(status, w, h, fps, Proto.readStr(body))
+            }
+        }
     }
 
     @Volatile private var transport: Transport? = null
@@ -131,6 +200,7 @@ class Client {
     private var jobs = listOf<Job>()
     private var pin = ""
     private var deviceName = ""
+    @Volatile private var target: Target? = null
     @Volatile private var lastPong = 0L
     @Volatile private var welcome: Int? = null
 
@@ -144,6 +214,7 @@ class Client {
         disconnect()
         this.pin = pin
         this.deviceName = deviceName
+        this.target = target
         _state.value = ConnState.Connecting(target)
         scope.launch {
             val t = try {
@@ -193,6 +264,7 @@ class Client {
     }
 
     private fun closeTransport() {
+        closeVideoChannel(sayStop = false)
         jobs.forEach { it.cancel() }
         jobs = emptyList()
         transport?.let { runCatching { it.close() } }
@@ -251,7 +323,7 @@ class Client {
                         if (s is ConnState.Connected && status == Proto.ST_OK) {
                             _state.value = s.copy(gamepad = welcomeCaps and Proto.CAP_GAMEPAD != 0,
                                 stream = welcomeCaps and Proto.CAP_STREAM != 0)
-                            streamRequest?.let { t.trySend(it) }
+                            if (!target.usb) streamRequest?.let { t.trySend(it) }
                         }
                     }
                 }
@@ -262,15 +334,7 @@ class Client {
                     _alive.value = true
                     _ping.value = (now - sent).coerceAtLeast(0)
                 }
-                Proto.VIDEO -> onVideo?.invoke(body)
-                Proto.AUDIO -> onAudio?.invoke(body)
-                Proto.STREAM_INFO -> {
-                    val status = body.get().toInt() and 0xFF
-                    val w = body.short.toInt() and 0xFFFF
-                    val h = body.short.toInt() and 0xFFFF
-                    val fps = body.get().toInt() and 0xFF
-                    _streamInfo.value = StreamInfo(status, w, h, fps, Proto.readStr(body))
-                }
+                Proto.VIDEO, Proto.AUDIO, Proto.STREAM_INFO -> streamPacket(type, body)
                 Proto.RUMBLE -> {
                     val large = body.get().toInt() and 0xFF
                     val small = body.get().toInt() and 0xFF
@@ -291,12 +355,17 @@ class Client {
             val now = SystemClock.uptimeMillis()
             send(Proto.ping((now and 0x7fffffff).toInt(), _ping.value ?: 0))
             onHeartbeat?.invoke()
-            if (++beats % 4 == 0) streamRequest?.let { send(it) }
+            if (++beats % 4 == 0 && videoJob == null) streamRequest?.let { send(it) }
             if (now - lastPong > 2500) {
                 _alive.value = false
                 _ping.value = null
             }
             delay(250)
         }
+    }
+
+    companion object {
+        /** Так помечен второй, видео-канал. Сервер не показывает его отдельным устройством. */
+        const val VIDEO_SUFFIX = "#video"
     }
 }

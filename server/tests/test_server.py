@@ -59,6 +59,13 @@ class ServerTest(unittest.TestCase):
             time.sleep(0.01)
         return False
 
+    def test_video_channel_is_hidden_helper(self):
+        self.send(P.HELLO, P.short_str("1234") + P.short_str("Phone" + P.VIDEO_SUFFIX))
+        self.assertEqual(self.rx()[0], P.WELCOME)
+        s = self.srv.clients()[0]
+        self.assertTrue(s.aux)
+        self.assertEqual(s.name, "Phone")
+
     def test_discover(self):
         self.send(P.DISCOVER)
         kind, body = self.rx()

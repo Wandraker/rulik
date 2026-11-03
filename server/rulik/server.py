@@ -30,6 +30,8 @@ class Session:
         self.rtt_ms = None
         self.idle = False
         self.watching = False
+        # второй TCP-канал телефона только для картинки (по кабелю), в окне отдельно не показываем
+        self.aux = False
         self._video = None
         self._skip_to_key = False
 
@@ -267,7 +269,8 @@ class Server:
         if s:
             self.streamer.unwatch(s.id)
             s.close()
-            self.log(t("left", name=s.name))
+            if not s.aux:
+                self.log(t("left", name=s.name))
             self.emit()
 
     def _watchdog(self):
@@ -324,6 +327,9 @@ class Server:
     def _hello(self, body, key, send):
         pin, pos = P.read_str(body, 0)
         name, _ = P.read_str(body, pos)
+        aux = name.endswith(P.VIDEO_SUFFIX)
+        if aux:
+            name = name[:-len(P.VIDEO_SUFFIX)]
         caps = (P.CAP_GAMEPAD if gamepad.available() else 0) | P.CAP_STREAM
         if self.pin and pin != self.pin:
             send(P.welcome(P.BAD_PIN, caps, self.name))
@@ -336,8 +342,10 @@ class Server:
                     send(P.welcome(P.FULL, caps, self.name))
                     return
                 s = Session(self, key, send, name or t("phone"))
+                s.aux = aux
                 self.sessions[key] = s
-                self.log(t("joined", name=s.name))
+                if not aux:
+                    self.log(t("joined", name=s.name))
             else:
                 s.last_seen = time.monotonic()
         send(P.welcome(P.OK, caps, self.name))

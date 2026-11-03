@@ -160,14 +160,18 @@ class App:
             self.stream_label.config(text=t("stream_ready"), fg=OK)
             self.ffmpeg_btn.pack_forget()
         lines = []
-        for s in self.server.clients():
+        clients = self.server.clients()
+        watching = {s.name for s in clients if s.aux and s.watching}
+        for s in clients:
+            if s.aux:
+                continue
             via = t("via_net") if s.addr else "USB (adb)"
             parts = [f"● {s.name}", via]
             if s.rtt_ms:
                 parts.append(f"{s.rtt_ms} {t('ms')}")
             if s.pad:
                 parts.append(t("gamepad"))
-            if s.watching:
+            if s.watching or s.name in watching:
                 parts.append(t("watching"))
             if s.idle:
                 parts.append(t("lost"))

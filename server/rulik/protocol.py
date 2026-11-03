@@ -45,6 +45,9 @@ REHELLO = 3  # сервер не знает это устройство (пер�
 CAP_GAMEPAD = 0x01
 CAP_STREAM = 0x02
 
+# Имя в HELLO с этим концом: второй, видео-канал того же телефона
+VIDEO_SUFFIX = "#video"
+
 # Статусы STREAM_INFO
 SS_OK = 0
 SS_NO_FFMPEG = 1
