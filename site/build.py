@@ -50,8 +50,8 @@ REDIRECTS = {
 T = {
     "ru": {
         "nav": {"index": "Главная", "download": "Скачать", "wiki": "Вики", "layouts": "Раскладки"},
-        "titles": {"index": "Rulik: рули своим ПК с телефона", "download": "Скачать Rulik", "layouts": "Раскладки Rulik"},
-        "desc": "Rulik превращает Android-телефон в геймпад, мышь и клавиатуру для ПК. Любая игра, Wi-Fi или кабель, свои раскладки.",
+        "titles": {"index": "Rulik: телефон вместо геймпада и монитора", "download": "Скачать Rulik", "layouts": "Раскладки Rulik"},
+        "desc": "Rulik превращает Android-телефон в геймпад, мышь и клавиатуру для ПК, а ещё показывает игры с ПК прямо на телефоне. Любая игра, Wi-Fi или кабель, свои раскладки.",
         "other": "EN", "footer": "© 2026 Wandraker. Все права на сайт защищены. Код приложения открыт под GPL-3.0.",
         "copy": "Скопировать", "copied": "Скопировано", "json": "Файл .json",
         "controls": "элементов",
@@ -64,8 +64,8 @@ T = {
     },
     "en": {
         "nav": {"index": "Home", "download": "Download", "wiki": "Wiki", "layouts": "Layouts"},
-        "titles": {"index": "Rulik: control your PC from your phone", "download": "Download Rulik", "layouts": "Rulik layouts"},
-        "desc": "Rulik turns an Android phone into a gamepad, mouse and keyboard for your PC. Any game, Wi-Fi or cable, your own layouts.",
+        "titles": {"index": "Rulik: your phone instead of a gamepad and a monitor", "download": "Download Rulik", "layouts": "Rulik layouts"},
+        "desc": "Rulik turns an Android phone into a gamepad, mouse and keyboard for your PC, and shows your PC games right on the phone. Any game, Wi-Fi or cable, your own layouts.",
         "other": "RU", "footer": "© 2026 Wandraker. All rights reserved for the website. The app's code is open under GPL-3.0.",
         "copy": "Copy", "copied": "Copied", "json": ".json file",
         "controls": "controls",
@@ -365,7 +365,7 @@ def main():
             shutil.copytree(SRC / "wiki" / lang / "img", out / "wiki" / "img")
         for slug in PAGES:
             body = (SRC / lang / f"{slug}.html").read_text(encoding="utf-8")
-            body = (body.replace("{{APK}}", APK).replace("{{EXE}}", EXE).replace("{{REPO}}", REPO)
+            body = (body.replace("{{ASSETS}}", "assets/" if lang == "ru" else "../assets/").replace("{{APK}}", APK).replace("{{EXE}}", EXE).replace("{{REPO}}", REPO)
                     .replace("{{LAYOUTS}}", layout_cards(lang) if slug == "layouts" else ""))
             body = re.sub(r"\{\{icon:(\w+)\}\}", lambda m: ICONS[m.group(1)], body)
             path = "" if slug == "index" else f"{slug}.html"
