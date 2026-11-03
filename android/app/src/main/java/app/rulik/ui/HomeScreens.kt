@@ -326,7 +326,7 @@ private fun StreamSettings(app: RulikApp) {
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             resNames.forEachIndexed { i, name ->
                 SegmentedButton(selected = res == i, onClick = { res = i; store.streamRes = i },
-                    shape = SegmentedButtonDefaults.itemShape(i, resNames.size)) { Text(name, maxLines = 1) }
+                    shape = SegmentedButtonDefaults.itemShape(i, resNames.size), icon = {}) { Text(name, maxLines = 1) }
             }
         }
         Text(stringResource(R.string.stream_fps), color = Dim, style = MaterialTheme.typography.bodySmall,
@@ -335,7 +335,7 @@ private fun StreamSettings(app: RulikApp) {
         SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
             rates.forEachIndexed { i, r ->
                 SegmentedButton(selected = fps == r, onClick = { fps = r; store.streamFps = r },
-                    shape = SegmentedButtonDefaults.itemShape(i, rates.size)) { Text("$r") }
+                    shape = SegmentedButtonDefaults.itemShape(i, rates.size), icon = {}) { Text("$r") }
             }
         }
         Text(stringResource(R.string.stream_bitrate, mbps.roundToInt()), modifier = Modifier.padding(top = 12.dp))

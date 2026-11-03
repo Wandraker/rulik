@@ -12,6 +12,10 @@ Any game you can play with an Xbox gamepad or with mouse and keyboard. Rulik cre
 
 Without a driver, Windows doesn't let a program create a gamepad. ViGEmBus is used by DS4Windows, Steam Input and many emulators. It ships inside Rulik Server and installs with one button. Mouse and keyboard work without it.
 
+## Can I play looking at the phone instead of the monitor?
+
+Yes. Tap "Play on the phone" on the home screen: the PC's picture and sound go to the phone, with the layout on top. More in [Play on the phone](stream.html).
+
 ## What's the latency?
 
 On home Wi-Fi it's usually 2–10 ms one way, even less over USB tethering. Packets are tiny and go over UDP without extra acknowledgements. More in [If it lags](lag.html).

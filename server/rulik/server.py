@@ -3,6 +3,7 @@
 import queue
 import socket
 import struct
+import sys
 import threading
 import time
 
@@ -149,7 +150,12 @@ class Server:
         if self._on_log:
             self._on_log(msg)
         else:
-            print(msg, flush=True)
+            try:
+                print(msg, flush=True)
+            except UnicodeEncodeError:
+                # консоль Windows в cp1251/cp866 не знает «×» и подобного: лучше вопросик, чем упавший поток
+                enc = getattr(sys.stdout, "encoding", None) or "ascii"
+                print(msg.encode(enc, "replace").decode(enc), flush=True)
 
     def emit(self):
         if self._on_change:

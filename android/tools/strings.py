@@ -180,7 +180,7 @@ S = {
     "stream_waiting": ("Waiting for the picture from the PC…", "Жду картинку с ПК…"),
     "stream_title": ("Picture from the PC", "Картинка с ПК"),
     "stream_res": ("Resolution", "Разрешение"),
-    "res_native": ("Monitor", "Как монитор"),
+    "res_native": ("Native", "Родное"),
     "stream_fps": ("Frames per second", "Кадров в секунду"),
     "stream_bitrate": ("Bitrate: %1$d Mbit/s", "Битрейт: %1$d Мбит/с"),
     "stream_bitrate_hint": ("Higher is sharper but needs a faster network. 15–30 Mbit/s is enough on 5 GHz Wi-Fi.",

@@ -9,12 +9,12 @@ keywords: wifi network router address ip discovery
 The phone and the PC must be on the same network. The PC can be wired to the router, that's even better.
 
 1. Start Rulik Server on the PC.
-2. In the app, open the Connect tab: the PC shows up under "PCs on the network".
+2. In the app, open the PC tab: the computer shows up under "PCs on the network".
 3. Tap it and enter the PIN from the server window.
 
 Discovery uses a broadcast packet on the local network, so there's nothing to type.
 
-![The Connect tab](img/connect.jpg)
+![The PC tab](img/connect.jpg)
 1 Every PC running Rulik Server shows up here
 2 Entering the address manually
 3 Switching to a cable connection

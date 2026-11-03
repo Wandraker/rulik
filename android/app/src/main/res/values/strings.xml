@@ -140,7 +140,7 @@
     <string name="stream_waiting">Waiting for the picture from the PC…</string>
     <string name="stream_title">Picture from the PC</string>
     <string name="stream_res">Resolution</string>
-    <string name="res_native">Monitor</string>
+    <string name="res_native">Native</string>
     <string name="stream_fps">Frames per second</string>
     <string name="stream_bitrate">Bitrate: %1$d Mbit/s</string>
     <string name="stream_bitrate_hint">Higher is sharper but needs a faster network. 15–30 Mbit/s is enough on 5 GHz Wi-Fi.</string>

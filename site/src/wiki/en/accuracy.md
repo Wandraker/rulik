@@ -4,7 +4,7 @@ hint: Nearest button, edge clicks and adapting to your fingers
 lead: Glass has no buttons you can feel. Rulik helps you hit them in three ways.
 keywords: miss accuracy gap nearest button vibration edge adapt calibration fingers
 ---
-All three settings are in the app on the Connect tab, under "Touch accuracy". They're all on by default, and each can be turned off on its own.
+All three settings are in the app on the Settings tab, under "Touch accuracy". They're all on by default, and each can be turned off on its own.
 
 ![The "Touch accuracy" block in the settings](img/settings.jpg)
 3 Nearest button on a miss

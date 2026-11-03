@@ -26,6 +26,10 @@ Turn on "Show ping while playing" in the app's settings. The number shows up in 
 - Close heavy apps and background downloads on the phone.
 - Don't sit far from the router.
 
+## If the picture on the phone lags
+
+When you [play on the phone](stream.html), video goes over the network too. If the picture stutters or freezes, lower the bitrate or the resolution: see [picture quality](stream-quality.html).
+
 ## Buttons won't get stuck
 
 Even if a packet gets lost on the way, the phone resends the full button state four times a second. So on a bad network a button may react a bit late, but it won't stay pressed.

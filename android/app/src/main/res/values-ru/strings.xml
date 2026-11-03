@@ -139,7 +139,7 @@
     <string name="stream_waiting">Жду картинку с ПК…</string>
     <string name="stream_title">Картинка с ПК</string>
     <string name="stream_res">Разрешение</string>
-    <string name="res_native">Как монитор</string>
+    <string name="res_native">Родное</string>
     <string name="stream_fps">Кадров в секунду</string>
     <string name="stream_bitrate">Битрейт: %1$d Мбит/с</string>
     <string name="stream_bitrate_hint">Больше значит чётче, но нужна сеть быстрее. На Wi-Fi 5 ГГц хватает 15–30 Мбит/с.</string>

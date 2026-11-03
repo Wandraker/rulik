@@ -17,6 +17,7 @@ from ctypes import wintypes
 from pathlib import Path
 
 from . import audio, protocol as P
+from .i18n import t
 
 CHUNK = 1180          # полезная нагрузка одного пакета VIDEO: влезает в MTU 1500 с запасом
 ENCODERS = ("h264_nvenc", "h264_amf", "h264_qsv", "libx264")
@@ -411,7 +412,7 @@ class Streamer:
             self._set(gen, P.SS_FAILED)
             return
         self._set(gen, P.SS_OK)
-        self.server.log(f"stream {self.size[0]}x{self.size[1]} {params.fps} fps {params.kbps} kbps · {encoder}")
+        self.server.log(t("stream_log", w=self.size[0], h=self.size[1], fps=params.fps, mbps=params.kbps // 1000, enc=encoder))
         threading.Thread(target=self._drain_errors, args=(proc,), daemon=True).start()
         frame_id = 0
         window_start = time.monotonic()
@@ -433,7 +434,7 @@ class Streamer:
             proc.kill()
         if gen == self._gen:
             # ffmpeg упал сам: например, игра переключила режим экрана. Перезапускаем.
-            self.server.log("ffmpeg stopped, restarting")
+            self.server.log(t("stream_restart"))
             time.sleep(0.5)
             with self.lock:
                 if gen != self._gen or not self.watchers:

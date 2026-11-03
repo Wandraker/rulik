@@ -25,6 +25,7 @@ Download `rulik-server.exe` from the [Download](../download.html) page and run i
 4 Cable connection through adb
 5 Firewall rule, if the phone can't see the PC
 6 Disconnect all phones
+7 Picture to the phone: needed to [play on the phone](stream.html)
 
 > Windows SmartScreen warns about an unknown publisher? Click "More info" and "Run anyway": the project doesn't have a paid code signing certificate yet.
 
@@ -37,12 +38,14 @@ Download `rulik.apk` from the [Download](../download.html) page and open the fil
 
 ## First connection
 
-1. Your PC shows up on the Connect tab. Tap it.
+1. Your PC shows up on the PC tab. Tap it.
 2. Enter the PIN from the server window.
-3. Open Layouts and press ▶ next to one, for example "Xbox gamepad".
+3. On the Home tab, pick a layout, for example "Xbox gamepad", and tap "Control the PC".
 4. In the game's control settings, pick gamepad.
 
-![The Connect tab in the app](img/connect.jpg)
+Want to play looking at the phone instead of the monitor? Tap "Play on the phone", more in [Play on the phone](stream.html).
+
+![The PC tab in the app](img/connect.jpg)
 1 PCs found on the network: tap yours
 2 If your PC wasn't found, type the address from the server window and tap Connect
 3 Cable connection through adb
@@ -51,7 +54,9 @@ Download `rulik.apk` from the [Download](../download.html) page and open the fil
 1 The PIN from the server window
 2 Connect
 
-![Layouts](img/layouts.jpg)
-1 Start a layout
+![The home screen](img/home.jpg)
+2 Layout
+3 Control the PC: the phone works as a gamepad
+4 Play on the phone: the PC's picture on the screen
 
 PC not in the list? See [PC not found](not-found.html). To connect with a cable, use [USB tethering](usb-tether.html) or [adb](adb.html).
