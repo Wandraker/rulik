@@ -43,6 +43,8 @@ _T = {
     "ffmpeg_ok": ("ffmpeg скачан, картинку на телефон можно включать", "ffmpeg downloaded, the phone can show the picture now"),
     "ffmpeg_fail": ("ffmpeg не скачался: {err}", "ffmpeg download failed: {err}"),
     "stream_log": ("Картинка: {w}×{h}, {fps} к/с, {mbps} Мбит/с · {enc}", "Picture: {w}×{h}, {fps} fps, {mbps} Mbit/s · {enc}"),
+    "stream_fallback": ("Захват Windows Graphics Capture не запустился, снимаю через Desktop Duplication",
+                        "Windows Graphics Capture didn't start, capturing through Desktop Duplication instead"),
     "stream_restart": ("ffmpeg остановился, запускаю заново", "ffmpeg stopped, starting it again"),
     "watching": ("смотрит экран", "watching"),
     "devices": ("Подключённые устройства", "Connected devices"),

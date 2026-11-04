@@ -114,30 +114,49 @@ def pick_encoder(ffmpeg):
 
 # --- мониторы ---
 
-def monitors():
-    """Прямоугольники мониторов (x, y, w, h), основной первым: так же их нумерует DXGI в простых случаях."""
-    out = []
+def monitor_info():
+    """Мониторы основной первым: (HMONITOR, (x, y, w, h), частота в Гц)."""
     if os.name != "nt":
-        return [(0, 0, 1920, 1080)]
+        return [(0, (0, 0, 1920, 1080), 60)]
+    out = []
     user32 = ctypes.windll.user32
 
-    class MONITORINFO(ctypes.Structure):
+    class MONITORINFOEX(ctypes.Structure):
         _fields_ = [("cbSize", wintypes.DWORD), ("rcMonitor", wintypes.RECT),
-                    ("rcWork", wintypes.RECT), ("dwFlags", wintypes.DWORD)]
+                    ("rcWork", wintypes.RECT), ("dwFlags", wintypes.DWORD), ("szDevice", wintypes.WCHAR * 32)]
 
-    proc_t = ctypes.WINFUNCTYPE(wintypes.BOOL, wintypes.HMONITOR, wintypes.HDC,
+    class DEVMODE(ctypes.Structure):
+        _fields_ = [("dmDeviceName", wintypes.WCHAR * 32), ("dmSpecVersion", wintypes.WORD),
+                    ("dmDriverVersion", wintypes.WORD), ("dmSize", wintypes.WORD), ("dmDriverExtra", wintypes.WORD),
+                    ("dmFields", wintypes.DWORD), ("dmPosition", wintypes.LONG * 2), ("dmDisplayOrientation", wintypes.DWORD),
+                    ("dmDisplayFixedOutput", wintypes.DWORD), ("dmColor", ctypes.c_short), ("dmDuplex", ctypes.c_short),
+                    ("dmYResolution", ctypes.c_short), ("dmTTOption", ctypes.c_short), ("dmCollate", ctypes.c_short),
+                    ("dmFormName", wintypes.WCHAR * 32), ("dmLogPixels", wintypes.WORD), ("dmBitsPerPel", wintypes.DWORD),
+                    ("dmPelsWidth", wintypes.DWORD), ("dmPelsHeight", wintypes.DWORD), ("dmDisplayFlags", wintypes.DWORD),
+                    ("dmDisplayFrequency", wintypes.DWORD)]
+
+    proc_t = ctypes.WINFUNCTYPE(wintypes.BOOL, ctypes.c_void_p, wintypes.HDC,
                                 ctypes.POINTER(wintypes.RECT), wintypes.LPARAM)
 
     def cb(hmon, _hdc, _rect, _lp):
-        mi = MONITORINFO(cbSize=ctypes.sizeof(MONITORINFO))
-        user32.GetMonitorInfoW(hmon, ctypes.byref(mi))
+        mi = MONITORINFOEX(cbSize=ctypes.sizeof(MONITORINFOEX))
+        user32.GetMonitorInfoW(ctypes.c_void_p(hmon), ctypes.byref(mi))
         r = mi.rcMonitor
-        out.append((mi.dwFlags & 1, (r.left, r.top, r.right - r.left, r.bottom - r.top)))
+        dm = DEVMODE(dmSize=ctypes.sizeof(DEVMODE))
+        hz = 60
+        if user32.EnumDisplaySettingsW(mi.szDevice, -1, ctypes.byref(dm)) and dm.dmDisplayFrequency > 1:
+            hz = dm.dmDisplayFrequency
+        out.append((mi.dwFlags & 1, (hmon, (r.left, r.top, r.right - r.left, r.bottom - r.top), hz)))
         return True
 
     user32.EnumDisplayMonitors(None, None, proc_t(cb), 0)
     out.sort(key=lambda m: -m[0])
-    return [m[1] for m in out] or [(0, 0, 1920, 1080)]
+    return [m[1] for m in out] or [(0, (0, 0, 1920, 1080), 60)]
+
+
+def monitors():
+    """Прямоугольники мониторов (x, y, w, h), основной первым."""
+    return [m[1] for m in monitor_info()]
 
 
 def fit(src_w, src_h, max_w, max_h):
@@ -252,6 +271,8 @@ class Streamer:
         self._proc = None
         self._gen = 0
         self.monitor_rect = monitors()[0]
+        self.fps = 0
+        self.wgc = True  # выключается сам, если на этом ПК gfxcapture не запустился
         self.stats = {"fps": 0.0, "kbps": 0}
         self.listeners = set()       # кому ещё и звук
         self._audio = None
@@ -329,7 +350,7 @@ class Streamer:
 
     def info(self):
         w, h = self.size
-        fps = self.params.fps if self.params else 0
+        fps = self.fps or (self.params.fps if self.params else 0)
         return P.stream_info(self.status, w, h, fps, self.encoder)
 
     def _broadcast(self, data):
@@ -347,19 +368,32 @@ class Streamer:
     # --- ffmpeg ---
 
     def command(self, ffmpeg, encoder, params):
-        mons = monitors()
+        mons = monitor_info()
         idx = min(max(params.monitor, 0), len(mons) - 1)
-        self.monitor_rect = mons[idx]
+        hmon, self.monitor_rect, hz = mons[idx]
         src_w, src_h = self.monitor_rect[2], self.monitor_rect[3]
         w, h = fit(src_w, src_h, params.width, params.height)
         self.size = (w, h)
-        fps = max(10, min(params.fps, 144))
+        # снимать чаще, чем рисует монитор, бессмысленно: новых кадров нет, а битрейт делится на пустые
+        fps = max(10, min(params.fps, 144, hz))
+        self.fps = fps
         rate = f"{params.kbps}k"
-        grab = f"ddagrab=output_idx={idx}:framerate={fps}:dup_frames=1"
-        if encoder in ZERO_COPY and (w, h) == (src_w, src_h):
-            vf = grab
+        if self.wgc and hmon:
+            # Windows Graphics Capture: кадр приходит сразу, как монитор его нарисовал, и уменьшается на видеокарте.
+            # ddagrab снимает по своему таймеру, и кадры приходят неровно, с дырами до 40 мс.
+            grab = f"gfxcapture=hmonitor={hmon}:max_framerate={fps}"
+            if (w, h) != (src_w, src_h):
+                grab += f":width={w}:height={h}"
+            gpu_ready = True
         else:
-            fmt = "yuv420p" if encoder == "libx264" else "nv12"
+            grab = f"ddagrab=output_idx={idx}:framerate={fps}:dup_frames=1"
+            gpu_ready = (w, h) == (src_w, src_h)
+        fmt = "yuv420p" if encoder == "libx264" else "nv12"
+        if encoder in ZERO_COPY and gpu_ready:
+            vf = grab
+        elif gpu_ready:
+            vf = f"{grab},hwdownload,format=bgra,format={fmt}"
+        else:
             vf = f"{grab},hwdownload,format=bgra,scale={w}:{h}:flags=fast_bilinear,format={fmt}"
         cmd = [ffmpeg, "-hide_banner", "-loglevel", "error", "-fflags", "nobuffer",
                "-f", "lavfi", "-i", vf, "-an", "-c:v", encoder]
@@ -412,7 +446,8 @@ class Streamer:
             self._set(gen, P.SS_FAILED)
             return
         self._set(gen, P.SS_OK)
-        self.server.log(t("stream_log", w=self.size[0], h=self.size[1], fps=params.fps, mbps=params.kbps // 1000, enc=encoder))
+        self.server.log(t("stream_log", w=self.size[0], h=self.size[1], fps=self.fps, mbps=params.kbps // 1000,
+                          enc=encoder + (" · WGC" if self.wgc else " · DDA")))
         threading.Thread(target=self._drain_errors, args=(proc,), daemon=True).start()
         frame_id = 0
         window_start = time.monotonic()
@@ -432,6 +467,10 @@ class Streamer:
                 window_start, frames, sent = now, 0, 0
         if proc.poll() is None:
             proc.kill()
+        if gen == self._gen and frame_id == 0 and self.wgc:
+            # gfxcapture тут не работает (старая Windows или старый ffmpeg): дальше снимаем через ddagrab
+            self.wgc = False
+            self.server.log(t("stream_fallback"))
         if gen == self._gen:
             # ffmpeg упал сам: например, игра переключила режим экрана. Перезапускаем.
             self.server.log(t("stream_restart"))
