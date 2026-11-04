@@ -29,8 +29,12 @@ def local_ips() -> list[str]:
 
 
 _NO_WINDOW = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
+# netsh и adb пишут в кодировке консоли Windows (cp866 на русской системе), а не в cp1251
+_CONSOLE = "oem" if os.name == "nt" else "utf-8"
 
 _PS_NETWORKS = (
+    # без этого PowerShell пишет в кодировке консоли, и русские названия сетей ломали разбор
+    "[Console]::OutputEncoding = [Text.Encoding]::UTF8; "
     "Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' -and $_.IPAddress -notlike '169.254.*' } | "
     "ForEach-Object { $p = Get-NetConnectionProfile -InterfaceIndex $_.InterfaceIndex -ErrorAction SilentlyContinue; "
     "[pscustomobject]@{ ip = $_.IPAddress; alias = $_.InterfaceAlias; "
@@ -46,7 +50,8 @@ def networks() -> list[dict]:
     """
     try:
         out = subprocess.run(["powershell", "-NoProfile", "-NonInteractive", "-Command", _PS_NETWORKS],
-                             capture_output=True, text=True, timeout=8, creationflags=_NO_WINDOW)
+                             capture_output=True, encoding="utf-8", errors="replace", timeout=8,
+                             creationflags=_NO_WINDOW)
         data = json.loads(out.stdout or "[]")
     except (OSError, subprocess.TimeoutExpired, ValueError):
         return [{"ip": ip, "alias": "", "public": False} for ip in local_ips()]
@@ -57,7 +62,8 @@ def has_port_rule() -> bool:
     """Есть ли наше правило на порт для всех типов сетей (его ставит кнопка «Брандмауэр»)."""
     try:
         out = subprocess.run(["netsh", "advfirewall", "firewall", "show", "rule", "name=Rulik UDP"],
-                             capture_output=True, text=True, timeout=5, creationflags=_NO_WINDOW)
+                             capture_output=True, encoding=_CONSOLE, errors="replace", timeout=5,
+                             creationflags=_NO_WINDOW)
     except (OSError, subprocess.TimeoutExpired):
         return False
     return out.returncode == 0
@@ -83,7 +89,7 @@ def adb_reverse(port: int) -> tuple[bool, str]:
     flags = subprocess.CREATE_NO_WINDOW if os.name == "nt" else 0
     try:
         out = subprocess.run([adb, "reverse", f"tcp:{port}", f"tcp:{port}"], capture_output=True,
-                             text=True, timeout=10, creationflags=flags)
+                             encoding=_CONSOLE, errors="replace", timeout=10, creationflags=flags)
     except (OSError, subprocess.TimeoutExpired) as e:
         return False, str(e)
     msg = (out.stdout + out.stderr).strip()
