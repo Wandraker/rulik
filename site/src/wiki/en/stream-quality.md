@@ -22,7 +22,9 @@ keywords: quality bitrate resolution frames fps mbit sound latency lag artifacts
 
 "Native" means the same as the PC's monitor. A phone screen is small, so 1080p and 1440p look almost the same on it, and 1080p is much easier on the network.
 
-90 and 120 frames make sense if the phone's screen can show them and the PC can run the game that fast.
+You can't get more frames than the PC's monitor shows: with a 60 Hz monitor the server caps the stream at 60. 90 and 120 make sense with a 120 Hz or faster monitor. While you play, Rulik switches the phone's screen to its highest refresh rate so frames don't wait.
+
+> Over a cable, turn on USB tethering on the phone rather than using adb. Through adb frames arrive in bunches, through USB tethering they arrive evenly, with a 1–4 ms ping.
 
 ## Latency
 
